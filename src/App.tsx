@@ -7,87 +7,64 @@ import { ChatWindow } from "./components/Chatwindow";
 import { InputBar } from "./components/Inputbar";
 import "./App.css";
 
-function generateId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
+function uid() { return `${Date.now()}-${Math.random().toString(36).slice(2,7)}`; }
 
 export default function App() {
-  const [selectedGame, setSelectedGame] = useState<GameId>("mtg");
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [game, setGame]       = useState<GameId>("mtg");
+  const [msgs, setMsgs]       = useState<Message[]>([]);
+  const [input, setInput]     = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState<string | null>(null);
 
-  const currentGame = GAMES.find((g) => g.id === selectedGame)!;
+  const currentGame = GAMES.find(g => g.id === game)!;
 
-  const handleGameChange = useCallback((id: GameId) => {
-    setSelectedGame(id);
-    setError(null);
-  }, []);
-
-  const handleSubmit = useCallback(async () => {
-    const question = input.trim();
-    if (!question || isLoading) return;
-
-    const userMessage: Message = {
-      id: generateId(),
-      role: "user",
-      content: question,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setError(null);
-    setIsLoading(true);
-
+  const submit = useCallback(async () => {
+    const q = input.trim();
+    if (!q || loading) return;
+    const userMsg: Message = { id: uid(), role: "user", content: q, timestamp: new Date() };
+    setMsgs(p => [...p, userMsg]);
+    setInput(""); setError(null); setLoading(true);
     try {
-      const answer = await askQuestion(question, selectedGame);
-      const assistantMessage: Message = {
-        id: generateId(),
-        role: "assistant",
-        content: answer,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur inconnue";
-      setError(msg);
+      const answer = await askQuestion(q, game);
+      const aiMsg: Message = { id: uid(), role: "assistant", content: answer, timestamp: new Date() };
+      setMsgs(p => [...p, aiMsg]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, [input, isLoading, selectedGame]);
+  }, [input, loading, game]);
 
   return (
     <div className="app">
-      {/* Header — nom à gauche, pleine largeur */}
       <header className="app-header">
-        <h1 className="header-h1">Judge</h1>
-        <span className="header-badge">AI</span>
+        <div className="header-logo">
+          <h1 className="header-h1">Judge</h1>
+          <span className="header-badge">AI</span>
+        </div>
       </header>
 
       <ChatWindow
-        messages={messages}
-        isLoading={isLoading}
+        messages={msgs}
+        isLoading={loading}
         emptyPlaceholder={currentGame.placeholder}
+        gameName={currentGame.label}
       />
 
       {error && (
-        <div className="app-error" role="alert">
-          <div className="app-error-inner">
-            <span>⚠</span> Impossible de contacter le serveur : {error}
-          </div>
+        <div className="app-error">
+          <div className="app-error-inner"><span>⚠</span> {error}</div>
         </div>
       )}
 
       <InputBar
         value={input}
         onChange={setInput}
-        onSubmit={handleSubmit}
-        disabled={isLoading}
+        onSubmit={submit}
+        disabled={loading}
         placeholder={currentGame.placeholder}
-        selectedGame={selectedGame}
-        onGameChange={handleGameChange}
+        selectedGame={game}
+        onGameChange={id => { setGame(id); setError(null); }}
       />
     </div>
   );

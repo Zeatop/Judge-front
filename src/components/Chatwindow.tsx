@@ -7,9 +7,10 @@ interface Props {
   messages: Message[];
   isLoading: boolean;
   emptyPlaceholder: string;
+  gameName: string;
 }
 
-export function ChatWindow({ messages, isLoading, emptyPlaceholder }: Props) {
+export function ChatWindow({ messages, isLoading, emptyPlaceholder, gameName }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -17,11 +18,12 @@ export function ChatWindow({ messages, isLoading, emptyPlaceholder }: Props) {
   }, [messages, isLoading]);
 
   return (
-    <div className="chat-window" role="log" aria-live="polite" aria-label="Conversation">
+    <div className="chat-window" role="log" aria-live="polite">
       {messages.length === 0 && !isLoading ? (
         <div className="chat-empty">
           <div className="chat-empty-icon">📖</div>
-          <p className="chat-empty-text">{emptyPlaceholder}</p>
+          <p className="chat-empty-title">{gameName}</p>
+          <p className="chat-empty-sub">{emptyPlaceholder}</p>
         </div>
       ) : (
         <div className="chat-messages">

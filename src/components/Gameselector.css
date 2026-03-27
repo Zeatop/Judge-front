@@ -1,121 +1,90 @@
-.gs-container {
+.gs-wrap {
   position: relative;
-  flex-shrink: 0;
   display: flex;
-  align-items: stretch;
+  align-items: center;
 }
 
-/* Séparateur vertical */
-.gs-separator {
-  width: 1px;
-  background: rgba(255,255,255,0.11);
-  align-self: stretch;
-  margin: 0;
-  flex-shrink: 0;
-}
-
-.gs-trigger {
-  display: flex;
+.gs-btn {
+  display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0 0.8rem;
+  padding: 0.3rem 0.5rem 0.3rem 0.6rem;
   background: transparent;
   border: none;
-  color: var(--text-muted);
-  font-family: var(--font-body);
-  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
   font-weight: 500;
-  white-space: nowrap;
   cursor: pointer;
-  transition: color 0.15s;
-  border-radius: 13px 0 0 13px;
-}
-
-.gs-trigger:hover:not(:disabled) { color: var(--text); }
-.gs-trigger.open { color: var(--text); }
-.gs-trigger:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.gs-current {
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: background 0.15s, color 0.15s;
   white-space: nowrap;
+  user-select: none;
 }
+.gs-btn:hover:not(:disabled) { background: rgba(255,255,255,0.06); color: var(--text); }
+.gs-btn.open { color: var(--text); }
+.gs-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.gs-chevron {
-  color: var(--text-faint);
-  transition: transform 0.18s ease;
-  flex-shrink: 0;
-}
-.gs-trigger.open .gs-chevron { transform: rotate(180deg); }
+.gs-label { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Dropdown */
+.gs-chevron { flex-shrink: 0; color: var(--text-3); transition: transform 0.18s ease; }
+.gs-btn.open .gs-chevron { transform: rotate(180deg); }
+
+/* ── Dropdown — rendu dans document.body via portal ── */
 .gs-dropdown {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 0;
-  min-width: 210px;
-  background: rgba(18, 28, 44, 0.98);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: var(--surface-raised);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset;
+  border-radius: var(--radius-md);
+  box-shadow: 0 -4px 6px rgba(0,0,0,0.1), 0 -12px 48px rgba(0,0,0,0.55);
   overflow: hidden;
-  animation: dropIn 0.16s cubic-bezier(0.2, 0, 0.2, 1);
-  z-index: 100;
+  animation: popUp 0.14s cubic-bezier(0.16,1,0.3,1);
+  z-index: 9999;
+}
+@keyframes popUp {
+  from { opacity:0; transform:translateY(4px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
 }
 
-@keyframes dropIn {
-  from { opacity: 0; transform: translateY(5px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.gs-search-wrap {
+.gs-search-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border);
 }
-.gs-search-icon { color: var(--text-faint); flex-shrink: 0; }
-.gs-search {
+.gs-search-ico { color: var(--text-3); flex-shrink: 0; }
+.gs-search-input {
   flex: 1;
   background: transparent;
   border: none;
   outline: none;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
   color: var(--text);
+  line-height: 1;
 }
-.gs-search::placeholder { color: var(--text-faint); font-size: 0.78rem; }
+.gs-search-input::placeholder { color: var(--text-3); }
 
 .gs-list { padding: 0.3rem; }
 
-.gs-option {
+.gs-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
-  padding: 0.5rem 0.7rem;
+  padding: 0.5rem 0.65rem;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-body);
+  color: var(--text-2);
+  font-family: var(--font-ui);
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
   text-align: left;
 }
-.gs-option:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-.gs-option.active { color: var(--text); }
-.gs-option-label { flex: 1; }
+.gs-item:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+.gs-item.active { color: var(--text); font-weight: 500; }
 .gs-check { color: var(--accent); flex-shrink: 0; }
 
-.gs-empty {
-  padding: 0.65rem;
-  font-size: 0.76rem;
-  color: var(--text-faint);
-  text-align: center;
-  font-style: italic;
-}
+.gs-none { padding: 0.65rem 0.75rem; font-size: 0.76rem; color: var(--text-3); font-style: italic; text-align: center; }

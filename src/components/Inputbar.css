@@ -1,41 +1,67 @@
 .input-bar {
   flex-shrink: 0;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
-  background: rgba(20, 30, 45, 0.82);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid var(--border);
+  background: rgba(23, 30, 46, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .input-inner {
-  max-width: 740px;
+  max-width: 720px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
+/* ── Rangée principale ── */
 .input-row {
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  min-height: 2.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  align-items: center;
+  gap: 0.6rem;
 }
 
-.input-row:focus-within {
-  border-color: rgba(156, 213, 255, 0.35);
-  box-shadow: 0 0 0 3px rgba(156, 213, 255, 0.06);
-}
-
-/* Le gs-container doit s'étirer en hauteur */
-.input-row > .gs-container {
-  align-self: stretch;
+/* ── Bouton jeu rond ── */
+.input-game-btn {
+  flex-shrink: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.input-game-btn:hover:not(:disabled) {
+  background: var(--surface-raised);
+  border-color: rgba(122,190,255,0.3);
+  transform: scale(1.06);
+}
+.input-game-btn:active { transform: scale(0.94); }
+.input-game-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.input-game-btn img { display: block; opacity: 0.7; }
+.input-game-btn:hover img { opacity: 1; }
+
+/* ── Champ texte ── */
+.input-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-xl);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+.input-shell:focus-within {
+  border-color: rgba(122,190,255,0.35);
+  box-shadow: 0 0 0 3px rgba(122,190,255,0.07);
 }
 
 .input-textarea {
@@ -45,55 +71,42 @@
   border: none;
   outline: none;
   resize: none;
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.55;
   color: var(--text);
-  padding: 0.7rem 0.6rem;
-  max-height: 140px;
+  padding: 0.65rem 0.5rem 0.65rem 1rem;
+  max-height: 130px;
   overflow-y: auto;
   scrollbar-width: none;
-  align-self: center;
 }
 .input-textarea::-webkit-scrollbar { display: none; }
-.input-textarea::placeholder {
-  color: var(--text-faint);
-  font-style: italic;
-  font-size: 0.83rem;
-  font-weight: 300;
-}
+.input-textarea::placeholder { color: var(--text-3); font-size: 0.845rem; }
 .input-textarea:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.send-btn {
-  align-self: flex-end;
+.input-send {
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
-  margin: 0.4rem;
-  border-radius: 9px;
-  border: none;
-  background: rgba(255,255,255,0.08);
-  color: var(--text-faint);
-  cursor: not-allowed;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  width: 2rem;
+  height: 2rem;
+  margin: 0 0.4rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: rgba(255,255,255,0.07);
+  color: var(--text-3);
+  cursor: not-allowed;
+  transition: all 0.15s;
 }
-.send-btn.ready {
-  background: var(--accent);
-  color: #0d1520;
-  cursor: pointer;
-}
-.send-btn.ready:hover { background: #b8dfff; transform: scale(1.04); }
-.send-btn.ready:active { transform: scale(0.95); }
+.input-send.active { background: var(--accent-solid); color: #fff; cursor: pointer; }
+.input-send.active:hover { filter: brightness(1.12); transform: scale(1.05); }
+.input-send.active:active { transform: scale(0.95); }
 
 .input-hint {
-  margin: 0.4rem 0 0;
-  font-size: 0.59rem;
-  color: var(--text-faint);
+  font-size: 0.6rem;
+  color: var(--text-3);
   text-align: center;
-  font-weight: 300;
   letter-spacing: 0.02em;
 }
