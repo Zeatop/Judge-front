@@ -11,71 +11,152 @@
   to   { opacity:1; transform:translateY(0); }
 }
 
-/* Avatar assistant */
 .avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 28px; height: 28px; border-radius: 8px;
   background: rgba(122,190,255,0.1);
   border: 1px solid rgba(122,190,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; flex-shrink: 0;
+  /* aligner avec le bas de la bulle-outer */
+  align-self: flex-end;
+  margin-bottom: 1.6rem; /* hauteur approx de la toolbar */
+}
+
+/* Conteneur bulle + toolbar */
+.bubble-outer {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  flex-shrink: 0;
+  flex-direction: column;
+  gap: 0;
+  max-width: min(80%, 520px);
 }
 
 .bubble {
-  max-width: min(80%, 520px);
   padding: 0.65rem 0.9rem;
   border-radius: var(--radius-lg);
   line-height: 1.6;
 }
 
-/* Utilisateur */
 .bubble-user {
   background: var(--surface-raised);
   border: 1px solid rgba(255,255,255,0.09);
   border-bottom-right-radius: 5px;
 }
 
-/* Assistant */
 .bubble-assistant {
-  background: rgba(122,190,255,0.07);
-  border: 1px solid rgba(122,190,255,0.15);
+  background: rgba(0,210,255,0.04);
+  border: 1px solid rgba(122,190,255,0.13);
   border-bottom-left-radius: 5px;
+  position: relative;
+}
+.bubble-assistant::before {
+  content: '';
+  position: absolute;
+  left: -1px; top: 8px; bottom: 8px; width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #00d2ff 0%, #c800ff 100%);
+  opacity: 0.7;
 }
 
 .bubble-text {
-  font-size: 0.875rem;
-  color: var(--text);
-  font-weight: 400;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0 0 0.25rem;
+  font-size: 0.875rem; color: var(--text);
+  font-weight: 400; white-space: pre-wrap;
+  word-break: break-word; margin: 0 0 0.25rem;
 }
 .bubble-text strong { color: var(--accent); font-weight: 600; }
 
 .bubble-time {
-  display: block;
-  font-size: 0.6rem;
-  color: var(--text-3);
-  text-align: right;
-  letter-spacing: 0.02em;
+  display: block; font-size: 0.6rem;
+  color: var(--text-3); text-align: right; letter-spacing: 0.02em;
 }
 
-/* Typing */
-.typing {
+/* ── Toolbar ── */
+.bubble-toolbar {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0.75rem 1rem;
+  gap: 2px;
+  padding: 0.2rem 0.3rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
+
+/* Apparaît au hover du wrapper */
+.bubble-wrapper:hover .bubble-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.toolbar-user { justify-content: flex-end; }
+.toolbar-assistant { justify-content: flex-start; padding-left: 0.1rem; }
+
+.tb-btn {
+  display: flex; align-items: center; gap: 0.3rem;
+  padding: 0.28rem 0.55rem;
+  border: none; border-radius: 6px;
+  background: transparent;
+  color: var(--text-3);
+  font-family: var(--font-ui); font-size: 0.7rem; font-weight: 400;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.tb-btn:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--text);
+}
+.tb-btn svg { flex-shrink: 0; }
+
+/* ── Mode édition ── */
+.bubble-edit-wrap {
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+
+.bubble-edit-textarea {
+  width: 100%;
+  min-height: 80px;
+  background: var(--surface);
+  border: 1px solid rgba(0,210,255,0.3);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 3px rgba(0,210,255,0.07);
+  color: var(--text);
+  font-family: var(--font-ui); font-size: 0.875rem;
+  line-height: 1.55; padding: 0.65rem 0.9rem;
+  resize: none; outline: none;
+  transition: border-color 0.15s;
+}
+.bubble-edit-textarea:focus { border-color: rgba(0,210,255,0.5); }
+
+.bubble-edit-actions {
+  display: flex; gap: 0.4rem; justify-content: flex-end;
+}
+
+.edit-cancel {
+  padding: 0.35rem 0.75rem;
+  border-radius: 7px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-2);
+  font-family: var(--font-ui); font-size: 0.78rem;
+  cursor: pointer; transition: background 0.12s, color 0.12s;
+}
+.edit-cancel:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+
+.edit-confirm {
+  padding: 0.35rem 0.75rem;
+  border-radius: 7px; border: none;
+  background: linear-gradient(135deg, #00d2ff, #c800ff);
+  color: #fff;
+  font-family: var(--font-ui); font-size: 0.78rem; font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.12s, transform 0.12s;
+  box-shadow: 0 0 12px rgba(0,180,255,0.2), 0 0 20px rgba(200,0,255,0.15);
+}
+.edit-confirm:hover { filter: brightness(1.1); transform: scale(1.03); }
+
+/* Typing */
+.typing { display: flex; align-items: center; gap: 4px; padding: 0.75rem 1rem; }
 .typing span {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  opacity: 0.4;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); opacity: 0.4;
   animation: dot 1.2s ease-in-out infinite;
 }
 .typing span:nth-child(2) { animation-delay: 0.16s; }

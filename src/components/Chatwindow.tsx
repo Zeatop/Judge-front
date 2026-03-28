@@ -8,9 +8,11 @@ interface Props {
   isLoading: boolean;
   emptyPlaceholder: string;
   gameName: string;
+  onResend: (content: string) => void;
+  onEdit: (id: string, content: string) => void;
 }
 
-export function ChatWindow({ messages, isLoading, emptyPlaceholder, gameName }: Props) {
+export function ChatWindow({ messages, isLoading, emptyPlaceholder, gameName, onResend, onEdit }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,7 +30,12 @@ export function ChatWindow({ messages, isLoading, emptyPlaceholder, gameName }: 
       ) : (
         <div className="chat-messages">
           {messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} />
+            <MessageBubble
+              key={msg.id}
+              message={msg}
+              onResend={onResend}
+              onEdit={onEdit}
+            />
           ))}
           {isLoading && <TypingIndicator />}
           <div ref={bottomRef} />

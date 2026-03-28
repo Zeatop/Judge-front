@@ -18,14 +18,13 @@ export default function App() {
 
   const currentGame = GAMES.find(g => g.id === game)!;
 
-  const submit = useCallback(async () => {
-    const q = input.trim();
-    if (!q || loading) return;
-    const userMsg: Message = { id: uid(), role: "user", content: q, timestamp: new Date() };
+  const sendQuestion = useCallback(async (question: string) => {
+    if (!question.trim() || loading) return;
+    const userMsg: Message = { id: uid(), role: "user", content: question, timestamp: new Date() };
     setMsgs(p => [...p, userMsg]);
     setInput(""); setError(null); setLoading(true);
     try {
-      const answer = await askQuestion(q, game);
+      const answer = await askQuestion(question, game);
       const aiMsg: Message = { id: uid(), role: "assistant", content: answer, timestamp: new Date() };
       setMsgs(p => [...p, aiMsg]);
     } catch (e) {
@@ -33,7 +32,25 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, game]);
+  }, [loading, game]);
+
+  const submit = useCallback(() => sendQuestion(input.trim()), [input, sendQuestion]);
+
+  // Relancer : renvoie le message tel quel
+  const handleResend = useCallback((content: string) => {
+    sendQuestion(content);
+  }, [sendQuestion]);
+
+  // Éditer : remplace le message dans l'historique et relance
+  const handleEdit = useCallback((id: string, newContent: string) => {
+    setMsgs(prev => {
+      const idx = prev.findIndex(m => m.id === id);
+      if (idx === -1) return prev;
+      // On garde les messages jusqu'à celui édité (exclu), puis on relance
+      return prev.slice(0, idx);
+    });
+    sendQuestion(newContent);
+  }, [sendQuestion]);
 
   return (
     <div className="app">
@@ -49,6 +66,8 @@ export default function App() {
         isLoading={loading}
         emptyPlaceholder={currentGame.placeholder}
         gameName={currentGame.label}
+        onResend={handleResend}
+        onEdit={handleEdit}
       />
 
       {error && (
