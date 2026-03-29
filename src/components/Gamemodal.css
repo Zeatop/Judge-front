@@ -40,6 +40,7 @@
   justify-content: space-between;
   padding: 1rem 1rem 0.75rem;
   border-bottom: 1px solid var(--border);
+  gap: 0.5rem;
 }
 
 .modal-title {
@@ -48,8 +49,10 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--text);
+  flex: 1;
 }
 
+.modal-back,
 .modal-close {
   width: 1.8rem;
   height: 1.8rem;
@@ -62,8 +65,13 @@
   align-items: center;
   justify-content: center;
   transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
-.modal-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.modal-back:hover,
+.modal-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
 
 /* ── Search ── */
 .modal-search-wrap {
@@ -84,6 +92,27 @@
   color: var(--text);
 }
 .modal-search::placeholder { color: var(--text-3); }
+
+/* ── Bouton + à côté de la recherche ── */
+.modal-add-btn {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.modal-add-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 /* ── Liste ── */
 .modal-list { padding: 0.4rem; }
@@ -114,4 +143,177 @@
   font-size: 0.8rem;
   color: var(--text-3);
   font-style: italic;
+}
+
+/* ── Formulaire d'ajout ── */
+.modal-form {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color-scheme: dark;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.modal-label {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.modal-input,
+.modal-select {
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.2rem;
+  padding: 0 0.65rem;
+  margin: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text);
+  color-scheme: dark;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.modal-input:focus,
+.modal-select:focus {
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.07);
+}
+.modal-input::placeholder {
+  color: var(--text-3);
+  opacity: 1;
+}
+
+.modal-select {
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-color: rgba(255,255,255,0.05);
+  padding-right: 2rem;
+}
+.modal-select option {
+  background: #1e2536;
+  color: var(--text);
+}
+
+/* ── File button ── */
+.modal-file-btn {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 2.2rem;
+  padding: 0 0.65rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px dashed rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.modal-file-btn svg {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+.modal-file-btn:hover {
+  border-color: rgba(255,255,255,0.2);
+  color: var(--text-2);
+  background: rgba(255,255,255,0.07);
+}
+.modal-file-btn.has-file {
+  color: var(--text);
+  border-style: solid;
+  border-color: rgba(255,255,255,0.15);
+}
+
+/* ── Submit button ── */
+.modal-submit {
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.4rem;
+  padding: 0;
+  margin-top: 0.3rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2, #e040fb));
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.modal-submit:hover:not(:disabled) {
+  opacity: 0.88;
+}
+.modal-submit:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.modal-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Spinner ── */
+.modal-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Messages ── */
+.modal-error {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: #f87171;
+  margin: 0;
+  padding: 0.35rem 0.55rem;
+  background: rgba(248,113,113,0.08);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(248,113,113,0.12);
+}
+
+.modal-success {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: #34d399;
+  margin: 0;
+  padding: 0.35rem 0.55rem;
+  background: rgba(52,211,153,0.08);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(52,211,153,0.12);
 }

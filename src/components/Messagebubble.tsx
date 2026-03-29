@@ -28,6 +28,22 @@ function CardLink({ card }: { card: CardInfo }) {
 }
 
 /* ── Inline renderer : gras + noms de cartes sur un segment de texte ── */
+
+/** Génère les variantes de nom à chercher pour chaque carte.
+ *  Ex: "Torbran, Thane of Red Fell" → ["Torbran, Thane of Red Fell", "Torbran"]
+ *  On matche d'abord le nom complet, puis le nom court (avant la virgule). */
+function cardNameVariants(card: CardInfo): { name: string; card: CardInfo }[] {
+  const variants: { name: string; card: CardInfo }[] = [
+    { name: card.name, card },
+  ];
+  // Nom court : partie avant la première virgule (si ≥ 4 chars pour éviter les faux positifs)
+  const comma = card.name.indexOf(",");
+  if (comma > 3) {
+    variants.push({ name: card.name.slice(0, comma), card });
+  }
+  return variants;
+}
+
 function renderInline(text: string, cards: CardInfo[]): React.ReactNode[] {
   if (cards.length === 0) {
     return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
@@ -36,6 +52,11 @@ function renderInline(text: string, cards: CardInfo[]): React.ReactNode[] {
       return <span key={i}>{part}</span>;
     });
   }
+
+  // Construire la liste de variantes, noms longs d'abord
+  const allVariants = cards.flatMap(cardNameVariants);
+  // Trier par longueur décroissante pour matcher le nom complet avant le court
+  allVariants.sort((a, b) => b.name.length - a.name.length);
 
   // Tokenisation : on cherche le prochain token (gras ou nom de carte)
   type Token =
@@ -51,12 +72,12 @@ function renderInline(text: string, cards: CardInfo[]): React.ReactNode[] {
     const boldMatch = rem.match(/\*\*([^*]+)\*\*/);
     const boldIdx = boldMatch ? rem.indexOf(boldMatch[0]) : -1;
 
-    // Chercher le nom de carte le plus proche
+    // Chercher le nom de carte le plus proche (variantes incluses)
     let cardIdx = -1, cardCard: CardInfo | null = null, cardLen = 0;
-    for (const card of cards) {
-      const idx = rem.toLowerCase().indexOf(card.name.toLowerCase());
-      if (idx !== -1 && (cardIdx === -1 || idx < cardIdx)) {
-        cardIdx = idx; cardCard = card; cardLen = card.name.length;
+    for (const variant of allVariants) {
+      const idx = rem.toLowerCase().indexOf(variant.name.toLowerCase());
+      if (idx !== -1 && (cardIdx === -1 || idx < cardIdx || (idx === cardIdx && variant.name.length > cardLen))) {
+        cardIdx = idx; cardCard = variant.card; cardLen = variant.name.length;
       }
     }
 

@@ -7,7 +7,7 @@ export interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
-  cards?: CardInfo[];   // cartes mentionnées dans ce message
+  cards?: CardInfo[];
 }
 
 export interface Game {
@@ -33,3 +33,17 @@ export const GAMES: Game[] = [
     placeholder: 'Ex: "Que se passe-t-il si on tombe sur une propriété hypothéquée ?"',
   },
 ];
+
+/** Ajoute un jeu dynamiquement après upload réussi. */
+export function addGame(id: string, label: string): Game {
+  const existing = GAMES.find(g => g.id === id);
+  if (existing) return existing;
+
+  const game: Game = {
+    id,
+    label,
+    placeholder: `Pose une question sur les règles de ${label}…`,
+  };
+  GAMES.push(game);
+  return game;
+}

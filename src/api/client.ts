@@ -1,6 +1,6 @@
 const API_BASE = "http://localhost:8000";
 
-export type GameId = "mtg" | "Catan" | "Monopoly";
+export type GameId = string;
 
 export interface CardInfo {
   name: string;
@@ -11,6 +11,14 @@ export interface CardInfo {
 export interface AskRequest {
   question: string;
   game_id: GameId;
+}
+
+export interface UploadResponse {
+  game_id: string;
+  lang: string;
+  filename: string;
+  chunks_indexed: number;
+  total_chunks: number;
 }
 
 export async function askQuestion(
@@ -29,19 +37,44 @@ export async function askQuestion(
 
   const data = await res.json();
 
-  // Le backend retourne "cards" (objets enrichis avec image_url)
-  // ou "cards_fetched" (noms strings selon version) — on gère les deux
   const rawCards = data.cards ?? data.cards_fetched ?? [];
 
   let cards: CardInfo[] = [];
   if (Array.isArray(rawCards) && rawCards.length > 0) {
     if (typeof rawCards[0] === "object" && "image_url" in rawCards[0]) {
-      // Objets déjà enrichis par le backend
       cards = rawCards as CardInfo[];
     }
-    // Si c'est des strings, on ne fait pas de fetch Scryfall côté frontend
-    // pour éviter les problèmes CORS — les cartes seront juste sans preview
   }
 
   return { answer: data.answer, cards };
+}
+
+export async function uploadRules(
+  file: File,
+  gameId: string,
+  lang: string
+): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const params = new URLSearchParams({ game_id: gameId, lang });
+
+  const res = await fetch(`${API_BASE}/upload?${params}`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Upload error ${res.status}: ${detail}`);
+  }
+
+  return res.json();
+}
+
+export async function fetchGames(): Promise<string[]> {
+  const res = await fetch(`${API_BASE}/games`);
+  if (!res.ok) throw new Error("Failed to fetch games");
+  const data = await res.json();
+  return data.games;
 }
