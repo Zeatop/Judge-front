@@ -1,10 +1,13 @@
-import type { GameId } from "./api/client";
+import type { GameId, CardInfo } from "./api/client";
+
+export type { CardInfo };
 
 export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  cards?: CardInfo[];   // cartes mentionnées dans ce message
 }
 
 export interface Game {

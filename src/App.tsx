@@ -24,8 +24,8 @@ export default function App() {
     setMsgs(p => [...p, userMsg]);
     setInput(""); setError(null); setLoading(true);
     try {
-      const answer = await askQuestion(question, game);
-      const aiMsg: Message = { id: uid(), role: "assistant", content: answer, timestamp: new Date() };
+      const { answer, cards } = await askQuestion(question, game);
+      const aiMsg: Message = { id: uid(), role: "assistant", content: answer, timestamp: new Date(), cards };
       setMsgs(p => [...p, aiMsg]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur inconnue");
@@ -36,17 +36,14 @@ export default function App() {
 
   const submit = useCallback(() => sendQuestion(input.trim()), [input, sendQuestion]);
 
-  // Relancer : renvoie le message tel quel
   const handleResend = useCallback((content: string) => {
     sendQuestion(content);
   }, [sendQuestion]);
 
-  // Éditer : remplace le message dans l'historique et relance
   const handleEdit = useCallback((id: string, newContent: string) => {
     setMsgs(prev => {
       const idx = prev.findIndex(m => m.id === id);
       if (idx === -1) return prev;
-      // On garde les messages jusqu'à celui édité (exclu), puis on relance
       return prev.slice(0, idx);
     });
     sendQuestion(newContent);
