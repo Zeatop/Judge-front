@@ -41,6 +41,24 @@ body {
   background: var(--bg);
 }
 
+/* ── App loading ── */
+.app-loading {
+  align-items: center;
+  justify-content: center;
+}
+
+.app-loader {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(122,190,255,0.12);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Header ── */
 .app-header {
   flex-shrink: 0;
@@ -80,6 +98,10 @@ body {
   padding: 0.18em 0.5em;
   border-radius: 4px;
   line-height: 1.6;
+}
+
+.header-spacer {
+  flex: 1;
 }
 
 /* ── Error ── */
