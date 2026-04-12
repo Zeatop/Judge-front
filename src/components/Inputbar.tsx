@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { GameModal } from "./Gamemodal";
 import type { GameId } from "../api/client";
-import "./InputBar.css";
+import "./Inputbar.css";
 
 interface Props {
   value: string;
