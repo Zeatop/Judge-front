@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Message, CardInfo } from "../types";
-import "./MessageBubble.css";
+import "./Messagebubble.css";
 
 /* ── Card link avec preview au hover ── */
 function CardLink({ card }: { card: CardInfo }) {

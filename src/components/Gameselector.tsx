@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { GAMES } from "../types";
 import type { GameId } from "../api/client";
-import "./GameSelector.css";
+import "./Gameselector.css";
 
 interface Props {
   selected: GameId;

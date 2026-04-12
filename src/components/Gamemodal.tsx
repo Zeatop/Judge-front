@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { GAMES, addGame } from "../types";
 import { uploadRules } from "../api/client";
 import type { GameId } from "../api/client";
-import "./GameModal.css";
+import "./Gamemodal.css";
 
 const LANGUAGES = [
   { code: "fr", label: "Français" },
