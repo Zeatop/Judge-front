@@ -35,7 +35,7 @@ pipeline {
 
         stage('Docker Build with Backend URL') {
             steps {
-                sh "docker build --build-arg VITE_JUDGE_API_URL=http://192.168.1.159:30091 -t ${REGISTRY}/${IMAGE}:${TAG} -t ${REGISTRY}/${IMAGE}:latest ."
+                sh "docker build --build-arg VITE_JUDGE_API_URL=https://api.judgeai.app -t ${REGISTRY}/${IMAGE}:${TAG} -t ${REGISTRY}/${IMAGE}:latest ."
             }
         }
 
