@@ -18,7 +18,7 @@ spec:
         - name: judge-front
           image: 10.0.0.10:5000/judge-front:latest
           ports:
-            - containerPort: 81
+            - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -29,6 +29,6 @@ spec:
   selector:
     app: judge-front
   ports:
-    - port: 81
-      targetPort: 81
+    - port: 80
+      targetPort: 80
       nodePort: 30090

@@ -57,7 +57,7 @@ pipeline {
 
     post {
         success {
-            echo "Déploiement réussi ! Judge-front accessible sur le port 30080"
+            echo "Déploiement réussi ! Judge-front accessible sur le port 30090"
         }
         failure {
             echo "Le pipeline a échoué"
