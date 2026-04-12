@@ -1,11 +1,12 @@
 import { useState, useCallback } from "react";
 import type { GameId } from "./api/client";
-import { askQuestion } from "./api/client";
+import { askQuestion, fetchChat } from "./api/client";
 import { GAMES } from "./types";
 import type { Message } from "./types";
 import { ChatWindow } from "./components/Chatwindow";
 import { InputBar } from "./components/Inputbar";
 import { UserMenu } from "./components/Usermenu";
+import { Sidebar } from "./components/Sidebar";
 import { useAuth, LoginPage, AuthCallback } from "./auth";
 import "./App.css";
 
@@ -13,11 +14,10 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-/** Simple client-side router based on pathname */
-function useRoute(): "login" | "callback" | "chat" {
+function useRoute(): "callback" | "app" {
   const path = window.location.pathname;
   if (path === "/auth/callback") return "callback";
-  return "chat"; // login guard is handled by auth state
+  return "app";
 }
 
 export default function App() {
@@ -30,8 +30,13 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Chat state ──
+  const [chatId, setChatId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const currentGame = GAMES.find((g) => g.id === game)!;
 
+  // ── Send question ──
   const sendQuestion = useCallback(
     async (question: string) => {
       if (!question.trim() || isLoading) return;
@@ -46,7 +51,15 @@ export default function App() {
       setError(null);
       setIsLoading(true);
       try {
-        const { answer, cards } = await askQuestion(question, game);
+        const { answer, cards, chat_id } = await askQuestion(
+          question,
+          game,
+          chatId ?? undefined
+        );
+        // Si un nouveau chat a été créé côté backend, on le stocke
+        if (chat_id && !chatId) {
+          setChatId(chat_id);
+        }
         const aiMsg: Message = {
           id: uid(),
           role: "assistant",
@@ -61,7 +74,7 @@ export default function App() {
         setIsLoading(false);
       }
     },
-    [isLoading, game]
+    [isLoading, game, chatId]
   );
 
   const submit = useCallback(
@@ -86,6 +99,35 @@ export default function App() {
     [sendQuestion]
   );
 
+  // ── Load existing chat from history ──
+  const loadChat = useCallback(async (id: string) => {
+    try {
+      const data = await fetchChat(id);
+      setChatId(id);
+      setGame(data.chat.game_id as GameId);
+
+      const loaded: Message[] = data.messages.map((m) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant",
+        content: m.content,
+        timestamp: new Date(m.created_at),
+        cards: m.cards as any,
+      }));
+      setMsgs(loaded);
+      setError(null);
+    } catch (e) {
+      setError("Impossible de charger la conversation.");
+    }
+  }, []);
+
+  // ── New chat ──
+  const newChat = useCallback(() => {
+    setChatId(null);
+    setMsgs([]);
+    setError(null);
+    setInput("");
+  }, []);
+
   // ── Loading state ──
   if (loading) {
     return (
@@ -95,25 +137,49 @@ export default function App() {
     );
   }
 
-  // ── OAuth callback route ──
   if (route === "callback") {
     return <AuthCallback />;
   }
 
-  // ── Not authenticated → Login page ──
   if (!user) {
     return <LoginPage />;
   }
 
-  // ── Authenticated → Chat ──
   return (
     <div className="app">
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        activeChatId={chatId}
+        onSelectChat={loadChat}
+        onNewChat={() => {
+          newChat();
+          setSidebarOpen(false);
+        }}
+      />
+
       <header className="app-header">
+        <button
+          className="header-menu-btn"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Ouvrir l'historique"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
         <div className="header-logo">
           <h1 className="header-h1">Judge</h1>
           <span className="header-badge">AI</span>
         </div>
         <div className="header-spacer" />
+        <button className="header-new-btn" onClick={newChat} title="Nouveau chat">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </button>
         <UserMenu />
       </header>
 

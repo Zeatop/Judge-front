@@ -1,0 +1,215 @@
+/* ── Overlay (mobile) ── */
+.sb-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: sbOverlayIn 0.15s ease;
+}
+@keyframes sbOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Sidebar panel ── */
+.sb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
+}
+.sb.sb-open {
+  transform: translateX(0);
+  box-shadow: 8px 0 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Header ── */
+.sb-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.75rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sb-header-title {
+  font-family: var(--font-brand);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+
+.sb-header-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+.sb-header-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+/* Hide close button on desktop if sidebar stays open */
+@media (min-width: 768px) {
+  .sb-close-btn {
+    display: none;
+  }
+}
+
+/* ── Search ── */
+.sb-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sb-search-ico {
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.sb-search {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text);
+}
+.sb-search::placeholder {
+  color: var(--text-3);
+}
+
+/* ── List ── */
+.sb-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.3rem 0;
+}
+
+.sb-empty {
+  padding: 1.5rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-3);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Group ── */
+.sb-group {
+  padding: 0.15rem 0;
+}
+
+.sb-group-label {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.75rem 0.25rem;
+}
+
+/* ── Item ── */
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0 0.35rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+}
+.sb-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.sb-item.active {
+  background: rgba(122, 190, 255, 0.08);
+}
+.sb-item.active .sb-item-title {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.sb-item-title {
+  flex: 1;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.sb-item-edit {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text);
+  outline: none;
+}
+
+/* ── Item actions (visible on hover) ── */
+.sb-item-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+  flex-shrink: 0;
+}
+.sb-item:hover .sb-item-actions {
+  opacity: 1;
+}
+
+.sb-item-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+.sb-item-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+.sb-item-btn-del:hover {
+  background: rgba(255, 90, 80, 0.1);
+  color: #ff8070;
+}
