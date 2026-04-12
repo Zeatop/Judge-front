@@ -5,7 +5,6 @@ pipeline {
         REGISTRY = '10.0.0.10:5000'
         IMAGE = 'judge-front'
         TAG = "${BUILD_NUMBER}"
-        BACKEND_URL = 'http://192.168.1.159:30091'
     }
 
     stages {
@@ -20,8 +19,8 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     sh """
                         docker run --rm \
-                            -v \$(pwd):/usr/src \
-                            -w /usr/src \
+                            --volumes-from jenkins \
+                            -w /var/jenkins_home/workspace/Judge-front \
                             -e SONAR_HOST_URL=\$SONAR_HOST_URL \
                             -e SONAR_TOKEN=\$SONAR_AUTH_TOKEN \
                             sonarsource/sonar-scanner-cli \
@@ -34,7 +33,7 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Build with Backend URL') {
             steps {
                 sh "docker build --build-arg JUDGE_API_URL=${BACKEND_URL} -t ${REGISTRY}/${IMAGE}:${TAG} -t ${REGISTRY}/${IMAGE}:latest ."
             }
