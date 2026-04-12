@@ -2,7 +2,7 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-ARG VITE_JUDGE_API_URL=http://192.168.1.159:30091
+ARG VITE_JUDGE_API_URL=https://api.judgeai.app
 ENV VITE_JUDGE_API_URL=$VITE_JUDGE_API_URL
 
 COPY package*.json ./
