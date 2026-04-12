@@ -35,7 +35,7 @@ pipeline {
 
         stage('Docker Build with Backend URL') {
             steps {
-                sh "docker build --build-arg JUDGE_API_URL=${BACKEND_URL} -t ${REGISTRY}/${IMAGE}:${TAG} -t ${REGISTRY}/${IMAGE}:latest ."
+                sh "docker build --build-arg VITE_JUDGE_API_URL=${VITE_JUDGE_API_URL} -t ${REGISTRY}/${IMAGE}:${TAG} -t ${REGISTRY}/${IMAGE}:latest ."
             }
         }
 

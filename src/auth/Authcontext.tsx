@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 
-const API_BASE = import.meta.env.JUDGE_API_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_JUDGE_API_URL || "http://localhost:8000";
 const TOKEN_KEY = "judge_ai_token";
 
 export interface User {
