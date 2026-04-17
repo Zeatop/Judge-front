@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 
@@ -45,6 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   const [loading, setLoading] = useState(true);
 
+  // Garde contre le double-run de StrictMode en dev
+  const initialized = useRef(false);
+
   // Fetch user profile from /auth/me
   const fetchMe = useCallback(async (jwt: string) => {
     try {
@@ -68,6 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // On mount: check for token in URL (OAuth callback) or localStorage
   useEffect(() => {
+    // StrictMode en dev monte-démonte-remonte. On s'assure de ne s'exécuter qu'une fois.
+    if (initialized.current) return;
+    initialized.current = true;
+
     const params = new URLSearchParams(window.location.search);
     const urlToken = params.get("token");
     const error = params.get("error");
@@ -82,8 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (urlToken) {
       localStorage.setItem(TOKEN_KEY, urlToken);
       setToken(urlToken);
-      // Clean URL
-      window.history.replaceState({}, "", "/");
+      // On NE nettoie PAS l'URL ici — on laisse AuthCallback gérer la redirection
+      // pour éviter la race entre replaceState et le routing React.
       fetchMe(urlToken).then(() => setLoading(false));
       return;
     }

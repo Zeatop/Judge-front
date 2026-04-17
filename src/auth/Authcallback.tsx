@@ -6,20 +6,35 @@ import "./Authcallback.css";
  * Page /auth/callback
  * Le backend redirige ici avec ?token=xxx&provider=yyy
  * ou ?error=auth_failed&provider=yyy
+ *
  * AuthContext gère la récupération du token depuis l'URL.
- * Ce composant affiche un loader pendant le traitement.
+ * Ce composant attend que l'utilisateur soit chargé (user != null)
+ * avant de rediriger vers /, pour éviter la double connexion.
  */
 export function AuthCallback() {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
   const params = new URLSearchParams(window.location.search);
   const error = params.get("error");
 
   useEffect(() => {
-    // Si pas d'erreur et pas de loading, redirect vers /
-    if (!loading && !error) {
-      window.location.href = "/";
+    // Tant qu'on charge, on ne fait rien
+    if (loading) return;
+
+    // En cas d'erreur OAuth, on reste sur la page pour afficher le message
+    if (error) return;
+
+    // Si l'auth a réussi (user chargé), on redirige proprement vers /
+    if (user) {
+      // replace() plutôt que href = "/" pour éviter que /auth/callback
+      // reste dans l'historique du navigateur.
+      window.location.replace("/");
+      return;
     }
-  }, [loading, error]);
+
+    // Pas d'erreur, pas de loading, pas de user : l'auth a échoué silencieusement
+    // (ex: token invalide). On renvoie vers la page de login.
+    window.location.replace("/");
+  }, [loading, error, user]);
 
   if (error) {
     return (
