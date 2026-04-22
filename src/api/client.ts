@@ -30,6 +30,7 @@ export interface AskRequest {
   question: string;
   game_id: GameId;
   chat_id?: string;
+  model_id?: string;
 }
 
 export interface AskResponse {
@@ -38,13 +39,36 @@ export interface AskResponse {
   chat_id: string | null;
 }
 
+// ── Models ──────────────────────────────────────────────────────────
+
+export interface ModelInfo {
+  id: string;
+  label: string;
+  description: string;
+  speed: "fast" | "medium" | "slow";
+  cost_tier: "low" | "medium" | "high";
+}
+
+export interface ModelsResponse {
+  default: string;
+  models: ModelInfo[];
+}
+
+export async function fetchModels(): Promise<ModelsResponse> {
+  const res = await fetch(`${API_BASE}/models`);
+  if (!res.ok) throw new Error("Failed to fetch models");
+  return res.json();
+}
+
 export async function askQuestion(
   question: string,
   game: GameId,
-  chatId?: string
+  chatId?: string,
+  modelId?: string,
 ): Promise<AskResponse> {
   const body: AskRequest = { question, game_id: game };
   if (chatId) body.chat_id = chatId;
+  if (modelId) body.model_id = modelId;
 
   const res = await fetch(`${API_BASE}/ask`, {
     method: "POST",

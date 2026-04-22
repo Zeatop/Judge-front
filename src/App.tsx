@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
-import type { GameId } from "./api/client";
-import { askQuestion, fetchChat } from "./api/client";
+import { useState, useCallback, useEffect } from "react";
+import type { GameId, ModelInfo } from "./api/client";
+import { askQuestion, fetchChat, fetchModels } from "./api/client";
 import { GAMES } from "./types";
 import type { Message } from "./types";
 import { ChatWindow } from "./components/Chatwindow";
@@ -9,6 +9,8 @@ import { UserMenu } from "./components/Usermenu";
 import { Sidebar } from "./components/Sidebar";
 import { useAuth, LoginPage, AuthCallback } from "./auth";
 import "./App.css";
+
+const MODEL_STORAGE_KEY = "judge_ai_model";
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -34,7 +36,33 @@ export default function App() {
   const [chatId, setChatId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // ── Models ──
+  const [models, setModels] = useState<ModelInfo[]>([]);
+  const [modelId, setModelId] = useState<string>(
+    () => localStorage.getItem(MODEL_STORAGE_KEY) ?? ""
+  );
+
   const currentGame = GAMES.find((g) => g.id === game)!;
+
+  // ── Fetch available models once authenticated ──
+  useEffect(() => {
+    if (!user) return;
+    fetchModels()
+      .then((res) => {
+        setModels(res.models);
+        // Si aucun choix enregistré ou choix invalide, prendre le défaut backend
+        setModelId((prev) => {
+          if (prev && res.models.some((m) => m.id === prev)) return prev;
+          return res.default;
+        });
+      })
+      .catch((e) => console.error("Failed to load models", e));
+  }, [user]);
+
+  // ── Persist model choice ──
+  useEffect(() => {
+    if (modelId) localStorage.setItem(MODEL_STORAGE_KEY, modelId);
+  }, [modelId]);
 
   // ── Send question ──
   const sendQuestion = useCallback(
@@ -54,7 +82,8 @@ export default function App() {
         const { answer, cards, chat_id } = await askQuestion(
           question,
           game,
-          chatId ?? undefined
+          chatId ?? undefined,
+          modelId || undefined,
         );
         // Si un nouveau chat a été créé côté backend, on le stocke
         if (chat_id && !chatId) {
@@ -74,7 +103,7 @@ export default function App() {
         setIsLoading(false);
       }
     },
-    [isLoading, game, chatId]
+    [isLoading, game, chatId, modelId]
   );
 
   const submit = useCallback(
@@ -211,6 +240,9 @@ export default function App() {
           setGame(id);
           setError(null);
         }}
+        models={models}
+        selectedModel={modelId}
+        onModelChange={setModelId}
       />
     </div>
   );

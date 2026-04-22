@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { GameModal } from "./Gamemodal";
-import type { GameId } from "../api/client";
+import { ModelSelector } from "./Modelselector";
+import type { GameId, ModelInfo } from "../api/client";
 import "./Inputbar.css";
 
 interface Props {
@@ -11,9 +12,16 @@ interface Props {
   placeholder?: string;
   selectedGame: GameId;
   onGameChange: (id: GameId) => void;
+  models: ModelInfo[];
+  selectedModel: string;
+  onModelChange: (id: string) => void;
 }
 
-export function InputBar({ value, onChange, onSubmit, disabled, placeholder, selectedGame, onGameChange }: Props) {
+export function InputBar({
+  value, onChange, onSubmit, disabled, placeholder,
+  selectedGame, onGameChange,
+  models, selectedModel, onModelChange,
+}: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -38,8 +46,6 @@ export function InputBar({ value, onChange, onSubmit, disabled, placeholder, sel
       <div className="input-bar">
         <div className="input-inner">
           <div className="input-row">
-
-            {/* Bouton jeu rond */}
             <button
               className="input-game-btn"
               onClick={() => !disabled && setModalOpen(true)}
@@ -50,7 +56,6 @@ export function InputBar({ value, onChange, onSubmit, disabled, placeholder, sel
               <img src="/boardGames-white.svg" alt="" width="18" height="18" />
             </button>
 
-            {/* Shell : textarea + send */}
             <div className="input-shell">
               <textarea
                 ref={ref}
@@ -75,9 +80,21 @@ export function InputBar({ value, onChange, onSubmit, disabled, placeholder, sel
                 </svg>
               </button>
             </div>
-
           </div>
-          <p className="input-hint">Entrée pour envoyer · Shift+Entrée pour nouvelle ligne</p>
+
+          <div className="input-footer">
+            {models.length > 0 ? (
+              <ModelSelector
+                models={models}
+                selected={selectedModel}
+                onChange={onModelChange}
+                disabled={disabled}
+              />
+            ) : <span />}
+            <p className="input-hint">
+              Entrée pour envoyer · Shift+Entrée pour nouvelle ligne
+            </p>
+          </div>
         </div>
       </div>
 
