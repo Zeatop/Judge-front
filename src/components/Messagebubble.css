@@ -21,6 +21,22 @@
   margin-bottom: 1.6rem; /* hauteur approx de la toolbar */
 }
 
+.avatar-spinning img {
+  animation: avatarSpin 1.2s linear infinite;
+}
+
+@keyframes avatarSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Respect accessibilité : pas d'anim si l'user l'a désactivée */
+@media (prefers-reduced-motion: reduce) {
+  .avatar-spinning img {
+    animation: none;
+  }
+}
+
 /* Conteneur bulle + toolbar */
 .bubble-outer {
   display: flex;

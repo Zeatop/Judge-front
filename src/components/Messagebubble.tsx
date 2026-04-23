@@ -256,7 +256,7 @@ export function MessageBubble({ message, onResend, onEdit }: BubbleProps) {
 export function TypingIndicator() {
   return (
     <div className="bubble-wrapper assistant">
-      <div className="avatar" aria-hidden>
+      <div className="avatar avatar-spinning" aria-hidden>
         <img src="/Judge.png" alt="Judge" width="32" height="32" />
       </div>
       <div className="bubble bubble-assistant typing">
