@@ -16,11 +16,11 @@ const SPEED_LABEL: Record<string, string> = {
   slow: "Lent",
 };
 
-const COST_LABEL: Record<string, string> = {
-  low: "$",
-  medium: "$$",
-  high: "$$$",
-};
+// const COST_LABEL: Record<string, string> = {
+//   low: "$",
+//   medium: "$$",
+//   high: "$$$",
+// };
 
 export function ModelSelector({ models, selected, onChange, disabled }: Props) {
   const [open, setOpen] = useState(false);
@@ -81,8 +81,8 @@ export function ModelSelector({ models, selected, onChange, disabled }: Props) {
                 <span className="ms-item-desc">{m.description}</span>
               </div>
               <div className="ms-item-meta">
-                <span className="ms-tag">{SPEED_LABEL[m.speed]}</span>
-                <span className="ms-tag">{COST_LABEL[m.cost_tier]}</span>
+                {/* <span className="ms-tag">{SPEED_LABEL[m.speed]}</span> */}
+                {/* <span className="ms-tag">{COST_LABEL[m.cost_tier]}</span> */}
                 {selected === m.id && (
                   <svg className="ms-check" width="12" height="12" viewBox="0 0 12 12" fill="none">
                     <path
