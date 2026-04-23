@@ -78,7 +78,7 @@ export function ModelSelector({ models, selected, onChange, disabled }: Props) {
             >
               <div className="ms-item-main">
                 <span className="ms-item-label">{m.label}</span>
-                <span className="ms-item-desc">{m.description}</span>
+                {/* <span className="ms-item-desc">{m.description}</span> */}
               </div>
               <div className="ms-item-meta">
                 {/* <span className="ms-tag">{SPEED_LABEL[m.speed]}</span> */}
