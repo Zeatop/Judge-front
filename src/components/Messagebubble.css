@@ -13,8 +13,7 @@
 
 .avatar {
   width: 28px; height: 28px; border-radius: 8px;
-  background: rgba(122,190,255,0.1);
-  border: 1px solid rgba(122,190,255,0.18);
+  background: transparent;
   display: flex; align-items: center; justify-content: center;
   font-size: 0.75rem; flex-shrink: 0;
   /* aligner avec le bas de la bulle-outer */
