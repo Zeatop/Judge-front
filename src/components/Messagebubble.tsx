@@ -185,7 +185,7 @@ export function MessageBubble({ message, onResend, onEdit }: BubbleProps) {
 
   return (
     <div className={`bubble-wrapper ${isUser ? "user" : "assistant"}`}>
-      {!isUser && <div className="avatar" aria-hidden>⚖</div>}
+      {!isUser && <div className="avatar" aria-hidden><img src="/Judge.png" alt="Judge" width="32" height="32" /></div>}
 
       <div className="bubble-outer">
         {editing ? (
@@ -256,7 +256,9 @@ export function MessageBubble({ message, onResend, onEdit }: BubbleProps) {
 export function TypingIndicator() {
   return (
     <div className="bubble-wrapper assistant">
-      <div className="avatar" aria-hidden>⚖</div>
+      <div className="avatar" aria-hidden>
+        <img src="/Judge.png" alt="Judge" width="32" height="32" />
+      </div>
       <div className="bubble bubble-assistant typing">
         <span /><span /><span />
       </div>
