@@ -10,11 +10,11 @@ interface Props {
   disabled?: boolean;
 }
 
-const SPEED_LABEL: Record<string, string> = {
-  fast: "Rapide",
-  medium: "Modéré",
-  slow: "Lent",
-};
+// const SPEED_LABEL: Record<string, string> = {
+//   fast: "Rapide",
+//   medium: "Modéré",
+//   slow: "Lent",
+// };
 
 // const COST_LABEL: Record<string, string> = {
 //   low: "$",
