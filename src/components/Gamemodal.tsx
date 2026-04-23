@@ -4,6 +4,7 @@ import { GAMES, addGame } from "../types";
 import { uploadRules } from "../api/client";
 import type { GameId } from "../api/client";
 import "./Gamemodal.css";
+import { useAuth } from "../auth";
 
 const LANGUAGES = [
   { code: "fr", label: "Français" },
@@ -25,6 +26,8 @@ interface Props {
 }
 
 export function GameModal({ selected, onChange, onClose }: Props) {
+  const { user } = useAuth();
+  const isAdmin = user?.is_admin ?? false;
   const [view, setView] = useState<View>("select");
   const [search, setSearch] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -191,21 +194,23 @@ export function GameModal({ selected, onChange, onClose }: Props) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <button
-                className="modal-add-btn"
-                onClick={() => setView("add")}
-                aria-label="Ajouter un jeu"
-                title="Ajouter un jeu"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M7 1v12M1 7h12"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
+              {isAdmin && (
+                <button
+                  className="modal-add-btn"
+                  onClick={() => setView("add")}
+                  aria-label="Ajouter un jeu"
+                  title="Ajouter un jeu"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path
+                      d="M7 1v12M1 7h12"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* ── List ── */}

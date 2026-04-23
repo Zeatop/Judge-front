@@ -17,6 +17,7 @@ export interface User {
   display_name: string | null;
   avatar_url: string | null;
   providers: string[];
+  is_admin: boolean;
 }
 
 interface AuthContextType {
