@@ -22,15 +22,16 @@
 }
 
 .avatar-spinning img {
-  animation: avatarSpin 1.2s linear infinite;
+  animation: avatarSpin 1.8s ease-in-out infinite;
+  transform-origin: center;
 }
 
 @keyframes avatarSpin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  0%   { transform: rotate(0deg)   scale(1); }
+  50%  { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
-/* Respect accessibilité : pas d'anim si l'user l'a désactivée */
 @media (prefers-reduced-motion: reduce) {
   .avatar-spinning img {
     animation: none;

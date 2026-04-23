@@ -259,9 +259,6 @@ export function TypingIndicator() {
       <div className="avatar avatar-spinning" aria-hidden>
         <img src="/Judge.png" alt="Judge" width="32" height="32" />
       </div>
-      <div className="bubble bubble-assistant typing">
-        <span /><span /><span />
-      </div>
     </div>
   );
 }
