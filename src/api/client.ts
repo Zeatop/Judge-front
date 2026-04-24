@@ -1,25 +1,20 @@
 const API_BASE = import.meta.env.VITE_JUDGE_API_URL || "http://localhost:8000";
-const TOKEN_KEY = "judge_ai_token";
 const SESSION_KEY = "judge_guest_session";
+const GUEST_Q_COUNT_KEY = "judge_guest_q_count";
 
 export type GameId = string;
 
-// ── Auth helpers ─────────────────────────────────────────────────────
+// ── Helpers communs ──────────────────────────────────────────────────
+// Plus de gestion de JWT côté client : le cookie HttpOnly est envoyé
+// automatiquement par le navigateur sur toutes les requêtes
+// credentials: "include". On garde uniquement les helpers guest.
 
-function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+function jsonHeaders(): Record<string, string> {
+  return { "Content-Type": "application/json" };
 }
 
-function authHeaders(): Record<string, string> {
-  const token = getToken();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  return headers;
-}
+// ── Session helpers (guest) ──────────────────────────────────────────
 
-// ── Session helpers (guest) ───────────────────────────────────────────
-
-/** Retourne le session_id existant, ou en crée un nouveau et le stocke. */
 export function getOrCreateSessionId(): string {
   let id = localStorage.getItem(SESSION_KEY);
   if (!id) {
@@ -37,7 +32,21 @@ export function clearSessionId(): void {
   localStorage.removeItem(SESSION_KEY);
 }
 
-// ── Card types ──────────────────────────────────────────────────────
+// ── Guest question counter (persisté pour résister au refresh) ────────
+
+export function getGuestQuestionCount(): number {
+  return parseInt(localStorage.getItem(GUEST_Q_COUNT_KEY) ?? "0", 10);
+}
+
+export function incrementGuestQuestionCount(): void {
+  localStorage.setItem(GUEST_Q_COUNT_KEY, String(getGuestQuestionCount() + 1));
+}
+
+export function resetGuestQuestionCount(): void {
+  localStorage.removeItem(GUEST_Q_COUNT_KEY);
+}
+
+// ── Card types ───────────────────────────────────────────────────────
 
 export interface CardInfo {
   name: string;
@@ -45,7 +54,7 @@ export interface CardInfo {
   image_url: string;
 }
 
-// ── Ask ─────────────────────────────────────────────────────────────
+// ── Ask ──────────────────────────────────────────────────────────────
 
 export interface AskRequest {
   question: string;
@@ -61,7 +70,7 @@ export interface AskResponse {
   chat_id: string | null;
 }
 
-// ── Models ──────────────────────────────────────────────────────────
+// ── Models ───────────────────────────────────────────────────────────
 
 export interface ModelInfo {
   id: string;
@@ -77,7 +86,7 @@ export interface ModelsResponse {
 }
 
 export async function fetchModels(): Promise<ModelsResponse> {
-  const res = await fetch(`${API_BASE}/models`);
+  const res = await fetch(`${API_BASE}/models`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch models");
   return res.json();
 }
@@ -92,21 +101,18 @@ export async function askQuestion(
   if (chatId) body.chat_id = chatId;
   if (modelId) body.model_id = modelId;
 
-  // Si pas de token → invité : on injecte automatiquement le session_id
-  const token = getToken();
-  if (!token) {
-    body.session_id = getOrCreateSessionId();
-  }
+  // Invité : pas de cookie → on envoie le session_id dans le body
+  const sessionId = getSessionId();
+  if (sessionId) body.session_id = sessionId;
 
   const res = await fetch(`${API_BASE}/ask`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: jsonHeaders(),
+    credentials: "include",
     body: JSON.stringify(body),
   });
 
-  if (!res.ok) {
-    throw new Error(`API error ${res.status}: ${res.statusText}`);
-  }
+  if (!res.ok) throw new Error(`API error ${res.status}: ${res.statusText}`);
 
   const data = await res.json();
   const rawCards = data.cards ?? [];
@@ -116,11 +122,10 @@ export async function askQuestion(
       cards = rawCards as CardInfo[];
     }
   }
-
   return { answer: data.answer, cards, chat_id: data.chat_id ?? null };
 }
 
-// ── Upload ──────────────────────────────────────────────────────────
+// ── Upload ───────────────────────────────────────────────────────────
 
 export interface UploadResponse {
   game_id: string;
@@ -133,21 +138,16 @@ export interface UploadResponse {
 export async function uploadRules(
   file: File,
   gameId: string,
-  lang: string
+  lang: string,
 ): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
   const params = new URLSearchParams({ game_id: gameId, lang });
-  const token = getToken();
-  const headers: Record<string, string> = {};
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-
   const res = await fetch(`${API_BASE}/upload?${params}`, {
     method: "POST",
-    headers,
+    credentials: "include",
     body: formData,
   });
-
   if (!res.ok) {
     const detail = await res.text();
     throw new Error(`Upload error ${res.status}: ${detail}`);
@@ -155,16 +155,16 @@ export async function uploadRules(
   return res.json();
 }
 
-// ── Games ───────────────────────────────────────────────────────────
+// ── Games ────────────────────────────────────────────────────────────
 
 export async function fetchGames(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/games`);
+  const res = await fetch(`${API_BASE}/games`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch games");
   const data = await res.json();
   return data.games;
 }
 
-// ── Chats ───────────────────────────────────────────────────────────
+// ── Chats ────────────────────────────────────────────────────────────
 
 export interface ChatSummary {
   id: string;
@@ -191,49 +191,43 @@ export interface ChatDetail {
 }
 
 export async function fetchChats(limit = 50): Promise<ChatSummary[]> {
-  const token = getToken();
-  if (token) {
-    const res = await fetch(`${API_BASE}/chats?limit=${limit}`, {
-      headers: authHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to fetch chats");
-    return res.json();
-  }
+  // Cookie envoyé automatiquement → 200 si connecté, 401 si invité
+  const res = await fetch(`${API_BASE}/chats?limit=${limit}`, {
+    credentials: "include",
+  });
+  if (res.ok) return res.json();
 
-  // Invité : on ne charge que s'il y a déjà un session_id (évite une requête inutile)
+  // Fallback guest
   const sessionId = getSessionId();
   if (!sessionId) return [];
-
-  const res = await fetch(
-    `${API_BASE}/chats?limit=${limit}&session_id=${sessionId}`
+  const guestRes = await fetch(
+    `${API_BASE}/chats?limit=${limit}&session_id=${sessionId}`,
+    { credentials: "include" },
   );
-  if (!res.ok) throw new Error("Failed to fetch chats");
-  return res.json();
+  if (!guestRes.ok) return [];
+  return guestRes.json();
 }
 
 export async function fetchChat(chatId: string): Promise<ChatDetail> {
-  const token = getToken();
-  if (token) {
-    const res = await fetch(`${API_BASE}/chats/${chatId}`, {
-      headers: authHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to fetch chat");
-    return res.json();
-  }
+  const res = await fetch(`${API_BASE}/chats/${chatId}`, {
+    credentials: "include",
+  });
+  if (res.ok) return res.json();
 
   const sessionId = getSessionId();
   const url = sessionId
     ? `${API_BASE}/chats/${chatId}?session_id=${sessionId}`
     : `${API_BASE}/chats/${chatId}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch chat");
-  return res.json();
+  const guestRes = await fetch(url, { credentials: "include" });
+  if (!guestRes.ok) throw new Error("Failed to fetch chat");
+  return guestRes.json();
 }
 
 export async function createChat(gameId: string, title?: string): Promise<ChatSummary> {
   const res = await fetch(`${API_BASE}/chats`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: jsonHeaders(),
+    credentials: "include",
     body: JSON.stringify({ game_id: gameId, title: title ?? "Nouveau chat" }),
   });
   if (!res.ok) throw new Error("Failed to create chat");
@@ -243,7 +237,8 @@ export async function createChat(gameId: string, title?: string): Promise<ChatSu
 export async function renameChat(chatId: string, title: string): Promise<ChatSummary> {
   const res = await fetch(`${API_BASE}/chats/${chatId}`, {
     method: "PATCH",
-    headers: authHeaders(),
+    headers: jsonHeaders(),
+    credentials: "include",
     body: JSON.stringify({ title }),
   });
   if (!res.ok) throw new Error("Failed to rename chat");
@@ -251,30 +246,27 @@ export async function renameChat(chatId: string, title: string): Promise<ChatSum
 }
 
 export async function deleteChat(chatId: string): Promise<void> {
-  const token = getToken();
-  if (token) {
-    const res = await fetch(`${API_BASE}/chats/${chatId}`, {
-      method: "DELETE",
-      headers: authHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to delete chat");
-    return;
-  }
+  const res = await fetch(`${API_BASE}/chats/${chatId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (res.ok) return;
 
   const sessionId = getSessionId();
   const url = sessionId
     ? `${API_BASE}/chats/${chatId}?session_id=${sessionId}`
     : `${API_BASE}/chats/${chatId}`;
-  const res = await fetch(url, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete chat");
+  const guestRes = await fetch(url, { method: "DELETE", credentials: "include" });
+  if (!guestRes.ok) throw new Error("Failed to delete chat");
 }
 
-// ── Migration invité → compte ────────────────────────────────────────
+// ── Migration invité → compte ─────────────────────────────────────────
 
 export async function migrateGuestChats(sessionId: string): Promise<number> {
   const res = await fetch(`${API_BASE}/chats/migrate`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: jsonHeaders(),
+    credentials: "include",
     body: JSON.stringify({ session_id: sessionId }),
   });
   if (!res.ok) return 0;

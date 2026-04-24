@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
 import type { GameId, ModelInfo } from "./api/client";
-import { askQuestion, fetchChat, fetchModels } from "./api/client";
+import {
+  askQuestion, fetchChat, fetchModels,
+  getGuestQuestionCount, incrementGuestQuestionCount, resetGuestQuestionCount,
+} from "./api/client";
 import { GAMES } from "./types";
 import type { Message } from "./types";
 import { ChatWindow } from "./components/Chatwindow";
@@ -43,8 +46,11 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false);
 
   // ── Limite invité : max 2 questions avant de demander la connexion ──
+  // Persisté en localStorage pour résister au refresh de page.
   const GUEST_MAX_QUESTIONS = 2;
-  const [guestQuestionCount, setGuestQuestionCount] = useState(0);
+  const [guestQuestionCount, setGuestQuestionCount] = useState(
+    () => getGuestQuestionCount()
+  );
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
 
   // ── Models ──
@@ -77,13 +83,14 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     setShowLogin(false);
+    // Réinitialiser le compteur guest
+    resetGuestQuestionCount();
+    setGuestQuestionCount(0);
     if (pendingQuestion) {
       const q = pendingQuestion;
       setPendingQuestion(null);
-      // Léger délai pour laisser React finir la mise à jour de user/token
       setTimeout(() => sendQuestion(q), 100);
     }
-  // sendQuestion est stable grâce à useCallback, on peut l'inclure
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -129,7 +136,10 @@ export default function App() {
         };
         setMsgs((p) => [...p, aiMsg]);
         // Incrémenter le compteur invité après une réponse réussie
-        if (!user) setGuestQuestionCount((n) => n + 1);
+        if (!user) {
+          incrementGuestQuestionCount();
+          setGuestQuestionCount(getGuestQuestionCount());
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Erreur inconnue");
       } finally {

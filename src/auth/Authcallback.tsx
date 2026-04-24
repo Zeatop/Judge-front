@@ -5,13 +5,16 @@ import "./Authcallback.css";
 
 /**
  * Page /auth/callback
- * Le backend redirige ici avec ?token=xxx&provider=yyy
- * ou ?error=auth_failed&provider=yyy
  *
- * Après authentification réussie :
- *   1. Migre les chats invités (session_id) vers le nouveau compte
- *   2. Nettoie le session_id du localStorage
- *   3. Redirige vers /
+ * Le backend redirige ici SANS token dans l'URL — le cookie HttpOnly
+ * est déjà posé par le backend sur la réponse de redirection.
+ * AuthContext restaure l'utilisateur via /auth/me au montage.
+ *
+ * Ce composant :
+ *   1. Attend que loading soit false
+ *   2. Si user : migre les chats invités si un session_id existe → /
+ *   3. Si error dans l'URL : affiche le message d'erreur
+ *   4. Si !user : auth échouée → /
  */
 export function AuthCallback() {
   const { user, loading } = useAuth();
@@ -25,35 +28,22 @@ export function AuthCallback() {
 
     if (user && !migrated.current) {
       migrated.current = true;
-
       const sessionId = getSessionId();
-
       if (sessionId) {
-        // Migrer les chats invités puis rediriger
         migrateGuestChats(sessionId)
           .then((count) => {
-            if (count > 0) {
-              console.log(`[Auth] ${count} chat(s) invité(s) migrés`);
-            }
+            if (count > 0) console.log(`[Auth] ${count} chat(s) invité(s) migrés`);
             clearSessionId();
           })
-          .catch(() => {
-            // En cas d'échec de migration, on nettoie quand même le session_id
-            // pour éviter des tentatives infinies
-            clearSessionId();
-          })
-          .finally(() => {
-            window.location.replace("/");
-          });
+          .catch(() => clearSessionId())
+          .finally(() => window.location.replace("/"));
       } else {
         window.location.replace("/");
       }
       return;
     }
 
-    if (!user && !loading) {
-      window.location.replace("/");
-    }
+    if (!user) window.location.replace("/");
   }, [loading, error, user]);
 
   if (error) {
@@ -65,9 +55,7 @@ export function AuthCallback() {
           <p className="auth-callback-sub">
             Une erreur est survenue lors de l'authentification. Réessaie.
           </p>
-          <a href="/" className="auth-callback-link">
-            Retour à l'accueil
-          </a>
+          <a href="/" className="auth-callback-link">Retour à l'accueil</a>
         </div>
       </div>
     );

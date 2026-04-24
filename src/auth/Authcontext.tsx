@@ -9,7 +9,6 @@ import {
 } from "react";
 
 const API_BASE = import.meta.env.VITE_JUDGE_API_URL || "http://localhost:8000";
-const TOKEN_KEY = "judge_ai_token";
 
 export interface User {
   id: string;
@@ -22,7 +21,6 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   loading: boolean;
   login: (provider: string) => void;
   logout: () => void;
@@ -30,7 +28,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  token: null,
   loading: true,
   login: () => {},
   logout: () => {},
@@ -42,80 +39,59 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem(TOKEN_KEY)
-  );
   const [loading, setLoading] = useState(true);
-
-  // Garde contre le double-run de StrictMode en dev
   const initialized = useRef(false);
 
-  // Fetch user profile from /auth/me
-  const fetchMe = useCallback(async (jwt: string) => {
+  /**
+   * Appelle /auth/me avec credentials: "include".
+   * Le cookie HttpOnly est envoyé automatiquement par le navigateur.
+   */
+  const fetchMe = useCallback(async (): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      });
+      const res = await fetch(`${API_BASE}/auth/me`, { credentials: "include" });
       if (res.ok) {
-        const data: User = await res.json();
-        setUser(data);
+        setUser(await res.json());
         return true;
       }
-      // Token invalid — clear it
-      localStorage.removeItem(TOKEN_KEY);
-      setToken(null);
       setUser(null);
       return false;
     } catch {
+      setUser(null);
       return false;
     }
   }, []);
 
-  // On mount: check for token in URL (OAuth callback) or localStorage
   useEffect(() => {
-    // StrictMode en dev monte-démonte-remonte. On s'assure de ne s'exécuter qu'une fois.
     if (initialized.current) return;
     initialized.current = true;
 
     const params = new URLSearchParams(window.location.search);
-    const urlToken = params.get("token");
-    const error = params.get("error");
-
-    if (error) {
-      // Clean URL
+    if (params.get("error")) {
       window.history.replaceState({}, "", window.location.pathname);
       setLoading(false);
       return;
     }
 
-    if (urlToken) {
-      localStorage.setItem(TOKEN_KEY, urlToken);
-      setToken(urlToken);
-      // On NE nettoie PAS l'URL ici — on laisse AuthCallback gérer la redirection
-      // pour éviter la race entre replaceState et le routing React.
-      fetchMe(urlToken).then(() => setLoading(false));
-      return;
-    }
-
-    if (token) {
-      fetchMe(token).then(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    // Le cookie est posé par le backend avant la redirection vers /auth/callback.
+    // Un simple appel à /auth/me suffit pour restaurer la session.
+    fetchMe().then(() => setLoading(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const login = useCallback((provider: string) => {
     window.location.href = `${API_BASE}/auth/${provider}/login`;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    setToken(null);
+  const logout = useCallback(async () => {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, { method: "POST", credentials: "include" });
+    } catch {
+      // Déconnexion locale même si la requête échoue
+    }
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
