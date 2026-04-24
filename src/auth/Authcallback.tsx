@@ -1,6 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useAuth } from "./Authcontext";
-import { getSessionId, clearSessionId, migrateGuestChats } from "../api/client";
 import "./Authcallback.css";
 
 /**
@@ -8,42 +7,32 @@ import "./Authcallback.css";
  *
  * Le backend redirige ici SANS token dans l'URL — le cookie HttpOnly
  * est déjà posé par le backend sur la réponse de redirection.
- * AuthContext restaure l'utilisateur via /auth/me au montage.
  *
- * Ce composant :
- *   1. Attend que loading soit false
- *   2. Si user : migre les chats invités si un session_id existe → /
- *   3. Si error dans l'URL : affiche le message d'erreur
- *   4. Si !user : auth échouée → /
+ * La séquence est :
+ *   1. AuthProvider monte ce composant → fetchMe() → user restauré
+ *   2. Dans fetchMe, si un session_id guest existe → migrateGuestChats
+ *      et migratedChatId stocké en sessionStorage
+ *   3. Ce composant redirige vers /
+ *   4. L'app se remonte à / ; AuthProvider.fetchMe re-tourne mais sans
+ *      session_id (déjà cleared), donc no-op côté migration.
+ *   5. App.tsx consomme migratedChatId (hydraté depuis sessionStorage)
+ *      pour recharger le chat guest, maintenant rattaché au user.
  */
 export function AuthCallback() {
   const { user, loading } = useAuth();
   const params = new URLSearchParams(window.location.search);
   const error = params.get("error");
-  const migrated = useRef(false);
 
   useEffect(() => {
     if (loading) return;
     if (error) return;
 
-    if (user && !migrated.current) {
-      migrated.current = true;
-      const sessionId = getSessionId();
-      if (sessionId) {
-        migrateGuestChats(sessionId)
-          .then((count) => {
-            if (count > 0) console.log(`[Auth] ${count} chat(s) invité(s) migrés`);
-            clearSessionId();
-          })
-          .catch(() => clearSessionId())
-          .finally(() => window.location.replace("/"));
-      } else {
-        window.location.replace("/");
-      }
-      return;
-    }
-
-    if (!user) window.location.replace("/");
+    // Peu importe le résultat de fetchMe : si l'auth a réussi le cookie
+    // est posé et on a déjà migré les chats. Si elle a échoué (user null),
+    // on repart vers l'accueil. Dans les deux cas : redirection propre.
+    // Note : l'utilisateur est bien `user` ci-dessous si la session est
+    // active, mais on ne s'en sert pas ici — c'est App qui en a besoin.
+    window.location.replace("/");
   }, [loading, error, user]);
 
   if (error) {

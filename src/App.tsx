@@ -18,6 +18,13 @@ import "./App.css";
 
 const MODEL_STORAGE_KEY = "judge_ai_model";
 
+/**
+ * Clé localStorage pour la question qu'un guest a voulu envoyer juste avant
+ * d'être bloqué par la limite de questions. Persistée pour survivre à la
+ * redirection full-page d'OAuth ; consommée une fois le user connecté.
+ */
+const PENDING_Q_KEY = "judge_pending_question";
+
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -29,7 +36,7 @@ function useRoute(): "callback" | "app" {
 }
 
 export default function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, consumeMigratedChatId } = useAuth();
   const route = useRoute();
 
   const [game, setGame] = useState<GameId>("mtg");
@@ -51,7 +58,17 @@ export default function App() {
   const [guestQuestionCount, setGuestQuestionCount] = useState(
     () => getGuestQuestionCount()
   );
-  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
+
+  // pendingQuestion hydratée depuis localStorage : si un guest a lancé
+  // "se connecter" en ayant une question en attente, elle doit survivre
+  // à la redirection OAuth.
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(
+    () => localStorage.getItem(PENDING_Q_KEY)
+  );
+  useEffect(() => {
+    if (pendingQuestion) localStorage.setItem(PENDING_Q_KEY, pendingQuestion);
+    else localStorage.removeItem(PENDING_Q_KEY);
+  }, [pendingQuestion]);
 
   // ── Models ──
   const [models, setModels] = useState<ModelInfo[]>([]);
@@ -79,20 +96,25 @@ export default function App() {
     if (modelId) localStorage.setItem(MODEL_STORAGE_KEY, modelId);
   }, [modelId]);
 
-  // ── Après connexion : fermer la modal et envoyer la question en attente ──
-  useEffect(() => {
-    if (!user) return;
-    setShowLogin(false);
-    // Réinitialiser le compteur guest
-    resetGuestQuestionCount();
-    setGuestQuestionCount(0);
-    if (pendingQuestion) {
-      const q = pendingQuestion;
-      setPendingQuestion(null);
-      setTimeout(() => sendQuestion(q), 100);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  // ── Load existing chat from history ──
+  // Déclaré avant le useEffect qui l'utilise pour éviter les refs circulaires.
+  const loadChat = useCallback(async (id: string) => {
+    // Pas de try/catch ici : on laisse remonter les erreurs pour que les
+    // appelants (sidebar, migration post-login) puissent réagir.
+    const data = await fetchChat(id);
+    setChatId(id);
+    setGame(data.chat.game_id as GameId);
+
+    const loaded: Message[] = data.messages.map((m) => ({
+      id: m.id,
+      role: m.role as "user" | "assistant",
+      content: m.content,
+      timestamp: new Date(m.created_at),
+      cards: m.cards as Message["cards"],
+    }));
+    setMsgs(loaded);
+    setError(null);
+  }, []);
 
   // ── Send question ──
   const sendQuestion = useCallback(
@@ -149,6 +171,40 @@ export default function App() {
     [isLoading, game, chatId, modelId, user, guestQuestionCount]
   );
 
+  // ── Après connexion : restaurer le chat guest migré + renvoyer la Q en attente ──
+  // Ce useEffect tourne à chaque changement de `user` (null → truthy après OAuth).
+  useEffect(() => {
+    if (!user) return;
+    setShowLogin(false);
+    resetGuestQuestionCount();
+    setGuestQuestionCount(0);
+
+    const migratedId = consumeMigratedChatId();
+
+    const run = async () => {
+      // 1. Restaurer la conversation guest (s'il y en avait une)
+      if (migratedId) {
+        try {
+          await loadChat(migratedId);
+        } catch (e) {
+          // Chat introuvable (supprimé, migration partielle...) : on oublie
+          console.warn("[App] Impossible de charger le chat migré:", e);
+        }
+      }
+
+      // 2. Renvoyer la question qui était bloquée par la limite guest, s'il y en a une
+      if (pendingQuestion) {
+        const q = pendingQuestion;
+        setPendingQuestion(null);
+        // petit délai pour laisser React commit les setState de loadChat
+        // (notamment setChatId), sinon sendQuestion partirait sans chat_id
+        setTimeout(() => sendQuestion(q), 100);
+      }
+    };
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const submit = useCallback(
     () => sendQuestion(input.trim()),
     [input, sendQuestion]
@@ -171,26 +227,17 @@ export default function App() {
     [sendQuestion]
   );
 
-  // ── Load existing chat from history ──
-  const loadChat = useCallback(async (id: string) => {
-    try {
-      const data = await fetchChat(id);
-      setChatId(id);
-      setGame(data.chat.game_id as GameId);
-
-      const loaded: Message[] = data.messages.map((m) => ({
-        id: m.id,
-        role: m.role as "user" | "assistant",
-        content: m.content,
-        timestamp: new Date(m.created_at),
-        cards: m.cards as any,
-      }));
-      setMsgs(loaded);
-      setError(null);
-    } catch (e) {
-      setError("Impossible de charger la conversation.");
-    }
-  }, []);
+  // ── Load chat from sidebar (avec gestion d'erreur pour l'UI) ──
+  const loadChatFromSidebar = useCallback(
+    async (id: string) => {
+      try {
+        await loadChat(id);
+      } catch {
+        setError("Impossible de charger la conversation.");
+      }
+    },
+    [loadChat]
+  );
 
   // ── New chat ──
   const newChat = useCallback(() => {
@@ -222,7 +269,7 @@ export default function App() {
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         activeChatId={chatId}
-        onSelectChat={loadChat}
+        onSelectChat={loadChatFromSidebar}
         onNewChat={() => {
           newChat();
           setSidebarOpen(false);

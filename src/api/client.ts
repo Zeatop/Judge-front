@@ -262,14 +262,36 @@ export async function deleteChat(chatId: string): Promise<void> {
 
 // ── Migration invité → compte ─────────────────────────────────────────
 
-export async function migrateGuestChats(sessionId: string): Promise<number> {
-  const res = await fetch(`${API_BASE}/chats/migrate`, {
-    method: "POST",
-    headers: jsonHeaders(),
-    credentials: "include",
-    body: JSON.stringify({ session_id: sessionId }),
-  });
-  if (!res.ok) return 0;
-  const data = await res.json();
-  return (data.migrated as number) ?? 0;
+export interface MigrateResponse {
+  migrated: number;
+  chats: ChatSummary[];
+  latest_chat_id: string | null;
+}
+
+/**
+ * Migre les chats guest (identifiés par session_id) vers l'utilisateur
+ * actuellement authentifié (cookie envoyé automatiquement).
+ *
+ * Retourne les chats migrés ainsi que l'ID du plus récent — le frontend
+ * peut alors restaurer automatiquement la conversation en cours.
+ */
+export async function migrateGuestChats(sessionId: string): Promise<MigrateResponse> {
+  const EMPTY: MigrateResponse = { migrated: 0, chats: [], latest_chat_id: null };
+  try {
+    const res = await fetch(`${API_BASE}/chats/migrate`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      credentials: "include",
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+    if (!res.ok) return EMPTY;
+    const data = await res.json();
+    return {
+      migrated: (data.migrated as number) ?? 0,
+      chats: (data.chats as ChatSummary[]) ?? [],
+      latest_chat_id: (data.latest_chat_id as string | null) ?? null,
+    };
+  } catch {
+    return EMPTY;
+  }
 }
