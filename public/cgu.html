@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Conditions Générales d'Utilisation de Judge AI." />
+  <title>Conditions Générales d'Utilisation — Judge AI</title>
+  <style>
+    :root {
+      --bg: #fdfcf9;
+      --surface: #ffffff;
+      --text: #1c1c1a;
+      --text-muted: #5f5e5a;
+      --accent: #534ab7;
+      --accent-bg: #eeedfe;
+      --border: rgba(0, 0, 0, 0.12);
+      --warning-bg: #faeeda;
+      --warning-border: #ba7517;
+      --warning-text: #633806;
+      --radius: 8px;
+      --max-w: 780px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a19;
+        --surface: #242423;
+        --text: #f1efe8;
+        --text-muted: #b4b2a9;
+        --accent: #afa9ec;
+        --accent-bg: #3c3489;
+        --border: rgba(255, 255, 255, 0.12);
+        --warning-bg: #412402;
+        --warning-border: #fac775;
+        --warning-text: #faeeda;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 0;
+    }
+
+    .wrapper {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 3rem 1.25rem 4rem;
+    }
+
+    header.doc-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .brand {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin: 0 0 0.5rem;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1.3;
+      margin: 0 0 0.75rem;
+      color: var(--text);
+    }
+
+    .meta {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .meta strong { color: var(--text); font-weight: 500; }
+
+    .disclaimer {
+      background: var(--warning-bg);
+      border-left: 3px solid var(--warning-border);
+      color: var(--warning-text);
+      padding: 1rem 1.25rem;
+      margin: 2rem 0;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 14px;
+    }
+
+    .disclaimer strong { font-weight: 500; }
+
+    .disclaimer code {
+      background: rgba(0,0,0,0.08);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin: 2rem 0 3rem;
+    }
+
+    nav.toc h2 {
+      font-size: 15px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin: 0 0 0.75rem;
+    }
+
+    nav.toc ol {
+      margin: 0;
+      padding-left: 1.25rem;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    nav.toc a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+    .article, .annexe {
+      margin: 2.5rem 0;
+      scroll-margin-top: 1rem;
+    }
+
+    h2 {
+      font-size: 19px;
+      font-weight: 500;
+      line-height: 1.4;
+      margin: 0 0 1rem;
+      padding-top: 0.5rem;
+      color: var(--text);
+    }
+
+    p { margin: 0 0 1rem; }
+
+    ul {
+      margin: 0 0 1rem;
+      padding-left: 1.5rem;
+    }
+
+    ul li { margin-bottom: 0.4rem; }
+
+    a { color: var(--accent); }
+
+    strong { font-weight: 500; color: var(--text); }
+
+    em { font-style: italic; }
+
+    code {
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .annexe {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem 1.75rem;
+      margin-top: 3rem;
+    }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    @media print {
+      .disclaimer { page-break-after: always; }
+      nav.toc { page-break-after: always; }
+      .article { page-break-inside: avoid; }
+      a { color: var(--text); text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header class="doc-header">
+      <p class="brand">Judge AI</p>
+      <h1>Conditions Générales d'Utilisation</h1>
+      <p class="meta">
+        Version <strong>1.0</strong> —
+        en vigueur à compter du <strong>23 avril 2026</strong>.
+      </p>
+    </header>
+
+    <div class="disclaimer">
+Ce document est un <strong>modèle</strong> de Conditions Générales d'Utilisation rédigé
+à titre indicatif, inspiré des standards juridiques français applicables aux éditeurs
+de services de communication au public en ligne (LCEN, RGPD, Code de la consommation,
+Code civil). Il doit être <strong>relu et adapté par un professionnel du droit</strong>
+avant publication, en fonction de la situation concrète de l'éditeur (statut, formule
+payante, traitements de données, juridiction cible, etc.).
+Les champs entre crochets <code>[...]</code> sont à compléter.
+</div>
+
+    <section id="preambule" class="article">
+      <h2>Préambule</h2>
+      <p>
+Les présentes Conditions Générales d'Utilisation (ci-après les « <strong>CGU</strong> »)
+régissent l'accès et l'utilisation du service Judge AI, accessible à l'adresse
+<a href="https://judgeai.app">https://judgeai.app</a> et via l'interface de programmation
+<a href="https://api.judgeai.app">https://api.judgeai.app</a> (ci-après collectivement
+le « <strong>Service</strong> »).
+</p>
+<p>
+Le Service est édité par <strong>Léo Jackson</strong>, exerçant en qualité
+d'entrepreneur individuel (auto-entrepreneur), immatriculé au Répertoire SIRENE sous le
+numéro SIREN <strong>[000 000 000]</strong>, dont le siège est situé
+<strong>[adresse complète]</strong> (ci-après l'« <strong>Éditeur</strong> »).
+</p>
+<p>
+L'utilisation du Service implique l'acceptation pleine et entière des présentes CGU par
+l'utilisateur (ci-après l'« <strong>Utilisateur</strong> »). L'Utilisateur reconnaît en
+avoir pris connaissance préalablement à toute utilisation.
+</p>
+    </section>
+
+    <nav class="toc" aria-label="Table des matières">
+      <h2>Sommaire</h2>
+      <ol>
+        <li><a href="#art-1">Article 1 — Mentions légales</a></li>
+        <li><a href="#art-2">Article 2 — Définitions</a></li>
+        <li><a href="#art-3">Article 3 — Objet</a></li>
+        <li><a href="#art-4">Article 4 — Acceptation et modification des CGU</a></li>
+        <li><a href="#art-5">Article 5 — Description du Service</a></li>
+        <li><a href="#art-6">Article 6 — Accès au Service</a></li>
+        <li><a href="#art-7">Article 7 — Inscription et Compte utilisateur</a></li>
+        <li><a href="#art-8">Article 8 — Formule Gratuite et Formule Premium</a></li>
+        <li><a href="#art-9">Article 9 — Conditions tarifaires et paiement (Formule Premium)</a></li>
+        <li><a href="#art-10">Article 10 — Droit de rétractation</a></li>
+        <li><a href="#art-11">Article 11 — Obligations de l'Utilisateur</a></li>
+        <li><a href="#art-12">Article 12 — Propriété intellectuelle</a></li>
+        <li><a href="#art-13">Article 13 — Données à caractère personnel</a></li>
+        <li><a href="#art-14">Article 14 — Cookies et traceurs</a></li>
+        <li><a href="#art-15">Article 15 — Durée et résiliation</a></li>
+        <li><a href="#art-16">Article 16 — Responsabilité</a></li>
+        <li><a href="#art-17">Article 17 — Force majeure</a></li>
+        <li><a href="#art-18">Article 18 — Liens hypertextes et services tiers</a></li>
+        <li><a href="#art-19">Article 19 — Règlement des litiges et médiation</a></li>
+        <li><a href="#art-20">Article 20 — Dispositions diverses</a></li>
+        <li><a href="#art-21">Article 21 — Contact</a></li>
+        <li><a href="#annexe">Annexe — Formulaire type de rétractation</a></li>
+      </ol>
+    </nav>
+
+    <section id="art-1" class="article">
+      <h2>Article 1 — Mentions légales</h2>
+      
+<p>Conformément aux articles 6-III-1 et 19 de la loi n° 2004-575 du 21 juin 2004 pour la
+confiance dans l'économie numérique (LCEN), il est précisé aux Utilisateurs du Service
+les informations suivantes :</p>
+
+<ul>
+  <li><strong>Éditeur :</strong> Léo Jackson, entrepreneur individuel</li>
+  <li><strong>Adresse :</strong> [adresse complète, code postal, ville, pays]</li>
+  <li><strong>SIREN :</strong> [000 000 000]</li>
+  <li><strong>Courriel :</strong> [adresse e-mail de contact]</li>
+  <li><strong>Directeur de la publication :</strong> Léo Jackson</li>
+  <li><strong>Hébergeur du Service :</strong> Léo Jackson, [adresse postale],
+      [téléphone], [site web]</li>
+</ul>
+
+<p>Le cas échéant, si l'activité relève d'un statut réglementé, l'Éditeur indique le
+numéro de TVA intracommunautaire ainsi que toute autre mention obligatoire applicable.</p>
+
+    </section>
+    <section id="art-2" class="article">
+      <h2>Article 2 — Définitions</h2>
+      
+<p>Dans les présentes CGU, les termes suivants, employés avec une majuscule, ont la
+signification suivante :</p>
+
+<ul>
+  <li><strong>Service :</strong> l'ensemble des fonctionnalités proposées par Judge AI,
+      incluant l'assistant conversationnel de règles de jeux de société, les modules
+      connexes, et toute évolution future.</li>
+  <li><strong>Compte :</strong> espace personnel créé par l'Utilisateur lors de son
+      inscription via un fournisseur d'identité tiers (Google, Facebook, Apple, Discord).</li>
+  <li><strong>Contenu Utilisateur :</strong> toute donnée, question, texte, nom de carte
+      ou information que l'Utilisateur soumet au Service.</li>
+  <li><strong>Réponse IA :</strong> toute réponse générée automatiquement par un modèle
+      d'intelligence artificielle en exécution du Service.</li>
+  <li><strong>Formule Gratuite :</strong> l'ensemble des fonctionnalités du Service
+      accessibles sans contrepartie financière.</li>
+  <li><strong>Formule Premium :</strong> l'ensemble des fonctionnalités supplémentaires
+      accessibles moyennant un abonnement payant, le cas échéant.</li>
+</ul>
+
+    </section>
+    <section id="art-3" class="article">
+      <h2>Article 3 — Objet</h2>
+      
+<p>Les présentes CGU ont pour objet de définir les modalités et conditions dans
+lesquelles l'Éditeur met le Service à la disposition des Utilisateurs, ainsi que les
+droits et obligations réciproques des parties.</p>
+
+<p>Le Service est un assistant conversationnel permettant d'interroger des règles de
+jeux de société (notamment <em>Magic: The Gathering</em>, <em>Catan</em> et
+<em>Monopoly</em>) par le biais d'un pipeline de génération augmentée par récupération
+(<em>retrieval-augmented generation</em>) reposant sur des modèles de langage
+tiers.</p>
+
+    </section>
+    <section id="art-4" class="article">
+      <h2>Article 4 — Acceptation et modification des CGU</h2>
+      
+<p>L'accès et l'utilisation du Service sont subordonnés à l'acceptation sans réserve
+des présentes CGU. L'Utilisateur est réputé les accepter dès sa première utilisation
+du Service ou, lors de l'inscription, par l'action positive de connexion via un
+fournisseur d'identité tiers.</p>
+
+<p>L'Éditeur se réserve le droit de modifier les CGU à tout moment afin notamment de
+les adapter aux évolutions du Service, à la législation ou à la jurisprudence. Les
+CGU applicables sont celles en vigueur à la date de l'utilisation du Service.
+L'Utilisateur est informé par tout moyen approprié (notification dans l'interface,
+courriel, affichage sur le site) des modifications substantielles. À défaut
+d'acceptation, l'Utilisateur doit cesser d'utiliser le Service.</p>
+
+    </section>
+    <section id="art-5" class="article">
+      <h2>Article 5 — Description du Service</h2>
+      
+<p>Le Service propose notamment les fonctionnalités suivantes :</p>
+
+<ul>
+  <li>poser des questions en langage naturel relatives aux règles de jeux de société
+      référencés ;</li>
+  <li>obtenir des Réponses IA construites à partir de documents de règles officielles
+      indexés et, pour <em>Magic: The Gathering</em>, à partir du texte Oracle et des
+      <em>rulings</em> officiels récupérés via l'API tierce Scryfall ;</li>
+  <li>conserver un historique des conversations associé au Compte de l'Utilisateur ;</li>
+  <li>sélectionner le modèle d'intelligence artificielle utilisé parmi ceux proposés
+      par l'Éditeur ;</li>
+  <li>toute évolution, amélioration ou fonctionnalité additionnelle introduite par
+      l'Éditeur.</li>
+</ul>
+
+<p><strong>Nature des Réponses IA.</strong> Les Réponses IA sont générées de manière
+automatisée et peuvent contenir des inexactitudes, des omissions ou des erreurs
+d'interprétation. Elles n'ont aucune valeur officielle d'arbitrage et ne remplacent en
+aucune façon la consultation des règles officielles publiées par les éditeurs des
+jeux concernés ni l'arbitrage d'un juge ou d'un arbitre officiel habilité. L'Utilisateur
+est seul responsable de l'usage qu'il fait des Réponses IA.</p>
+
+    </section>
+    <section id="art-6" class="article">
+      <h2>Article 6 — Accès au Service</h2>
+      
+<p>Le Service est accessible gratuitement, 24 heures sur 24 et 7 jours sur 7, à tout
+Utilisateur disposant d'un accès Internet. Les frais d'équipement, de connexion et de
+télécommunications sont à la charge exclusive de l'Utilisateur.</p>
+
+<p>L'Éditeur met en œuvre les moyens raisonnables pour assurer un accès de qualité au
+Service, sans être toutefois tenu à une obligation de résultat. L'Éditeur pourra, à
+tout moment, suspendre, limiter ou interrompre l'accès au Service afin de procéder
+notamment à des opérations de maintenance, de mises à jour, d'amélioration ou en cas
+d'urgence, sans que cela ne puisse engager sa responsabilité.</p>
+
+    </section>
+    <section id="art-7" class="article">
+      <h2>Article 7 — Inscription et Compte utilisateur</h2>
+      
+<p>Certaines fonctionnalités (notamment la conservation de l'historique des
+conversations et l'accès à la Formule Premium) requièrent la création d'un Compte.
+L'inscription s'effectue exclusivement par authentification via un fournisseur
+d'identité tiers parmi les suivants : Google, Facebook, Apple ou Discord.</p>
+
+<p>L'Utilisateur garantit que les informations transmises par le fournisseur d'identité
+et utilisées dans le cadre du Service sont exactes, sincères et à jour. L'Utilisateur
+s'engage à informer sans délai l'Éditeur de toute modification de ces informations.</p>
+
+<p>L'Utilisateur est responsable de la confidentialité des accès à son Compte et de
+toutes les actions effectuées depuis celui-ci. En cas d'utilisation frauduleuse ou non
+autorisée, l'Utilisateur doit en informer l'Éditeur sans délai à l'adresse
+<a href="mailto:[contact@judgeai.app]">[contact@judgeai.app]</a>.</p>
+
+<p>L'accès au Service est réservé aux personnes physiques majeures ou aux mineurs
+bénéficiant de l'autorisation de leur représentant légal. L'Éditeur se réserve le droit
+de demander à tout moment un justificatif à cet égard.</p>
+
+    </section>
+    <section id="art-8" class="article">
+      <h2>Article 8 — Formule Gratuite et Formule Premium</h2>
+      
+<p>Le Service propose une <strong>Formule Gratuite</strong> accessible sans
+contrepartie financière, ainsi qu'une ou plusieurs <strong>Formules Premium</strong>
+accessibles moyennant un abonnement payant.</p>
+
+<p>La description précise des fonctionnalités associées à chaque formule, ainsi que
+leurs éventuelles limitations quantitatives (nombre de requêtes, modèles disponibles,
+historique conservé, etc.), est disponible sur la page tarifaire du Service.
+L'Éditeur se réserve le droit de faire évoluer le périmètre de chaque formule à tout
+moment, dans le respect des droits acquis par les abonnés en cours.</p>
+
+    </section>
+    <section id="art-9" class="article">
+      <h2>Article 9 — Conditions tarifaires et paiement (Formule Premium)</h2>
+      
+<p>Les tarifs applicables à la Formule Premium sont indiqués en euros, toutes taxes
+comprises le cas échéant, sur la page tarifaire du Service au moment de la souscription.
+Ils peuvent être modifiés à tout moment, les tarifs applicables à un abonnement en cours
+restant toutefois ceux en vigueur à la date de souscription, jusqu'à son prochain
+renouvellement.</p>
+
+<p>Le paiement s'effectue par les moyens proposés sur le Service, via un prestataire
+de paiement tiers. L'Éditeur n'a aucun accès aux données bancaires de l'Utilisateur,
+lesquelles sont traitées exclusivement par ledit prestataire.</p>
+
+<p>Sauf stipulation contraire, l'abonnement est conclu pour une durée indéterminée et
+reconduit tacitement à chaque échéance (mensuelle ou annuelle selon la formule
+choisie), jusqu'à résiliation par l'Utilisateur dans les conditions prévues à
+l'article 15.</p>
+
+<p>En cas de défaut de paiement, l'Éditeur se réserve le droit de suspendre l'accès
+aux fonctionnalités Premium de plein droit, après l'envoi d'une mise en demeure
+restée infructueuse.</p>
+
+    </section>
+    <section id="art-10" class="article">
+      <h2>Article 10 — Droit de rétractation</h2>
+      
+<p>Conformément aux articles L.221-18 et suivants du Code de la consommation,
+l'Utilisateur consommateur dispose d'un délai de quatorze (14) jours à compter de la
+souscription de la Formule Premium pour exercer son droit de rétractation, sans avoir
+à motiver sa décision.</p>
+
+<p>L'Utilisateur peut exercer ce droit en adressant à l'Éditeur une déclaration dénuée
+d'ambiguïté par courriel à <a href="mailto:[contact@judgeai.app]">[contact@judgeai.app]</a>
+ou en utilisant le formulaire type disponible en annexe des présentes CGU. Le
+remboursement sera effectué dans un délai de quatorze (14) jours à compter de la
+réception de la demande, par le même moyen de paiement que celui utilisé pour la
+transaction initiale.</p>
+
+<p><strong>Exception – exécution immédiate.</strong> Conformément à l'article
+L.221-28, 1° du Code de la consommation, l'Utilisateur qui demande expressément
+l'exécution immédiate du Service pendant le délai de rétractation (par exemple en
+accédant aux fonctionnalités Premium dès la souscription) reconnaît renoncer à son
+droit de rétractation dès lors que le Service aura été pleinement exécuté avant la
+fin dudit délai. En cas d'exécution partielle, l'Utilisateur sera redevable du montant
+correspondant au service effectivement fourni.</p>
+
+    </section>
+    <section id="art-11" class="article">
+      <h2>Article 11 — Obligations de l'Utilisateur</h2>
+      
+<p>L'Utilisateur s'engage à utiliser le Service conformément aux présentes CGU, aux
+lois et règlements en vigueur, ainsi qu'aux bonnes mœurs. En particulier, l'Utilisateur
+s'interdit :</p>
+
+<ul>
+  <li>de tenter d'accéder frauduleusement à tout ou partie du Service, d'en perturber
+      le fonctionnement ou d'altérer son intégrité ;</li>
+  <li>d'utiliser le Service à des fins illicites, frauduleuses, malveillantes ou
+      contraires à l'ordre public ;</li>
+  <li>de soumettre au Service tout contenu à caractère diffamatoire, injurieux,
+      discriminatoire, haineux, pornographique, pédopornographique, incitant à la
+      violence ou portant atteinte aux droits de tiers ;</li>
+  <li>d'utiliser le Service pour collecter, reconstituer ou extraire de façon
+      automatisée, massive ou systématique les contenus, les Réponses IA ou les
+      métadonnées du Service, sauf autorisation expresse de l'Éditeur ;</li>
+  <li>de contourner les limitations techniques, tarifaires ou d'usage du Service ;</li>
+  <li>de porter atteinte aux droits de propriété intellectuelle de l'Éditeur ou de
+      tiers ;</li>
+  <li>d'utiliser le Service pour développer, entraîner ou améliorer un modèle
+      d'intelligence artificielle concurrent.</li>
+</ul>
+
+<p>L'Utilisateur reste seul responsable des Contenus Utilisateur qu'il soumet au
+Service et des conséquences de leur utilisation.</p>
+
+    </section>
+    <section id="art-12" class="article">
+      <h2>Article 12 — Propriété intellectuelle</h2>
+      
+<p><strong>Sur le Service.</strong> L'ensemble des éléments composant le Service
+(architecture, code source, bases de données, interfaces, graphismes, logos, textes
+rédigés par l'Éditeur, marques, etc.) est la propriété exclusive de l'Éditeur ou fait
+l'objet d'une concession de droits à son bénéfice. Toute reproduction, représentation,
+diffusion, adaptation, modification ou exploitation, en tout ou partie, sans
+autorisation écrite préalable de l'Éditeur, est strictement interdite et est
+susceptible de constituer un acte de contrefaçon sanctionné par les articles
+L.335-2 et suivants du Code de la propriété intellectuelle.</p>
+
+<p><strong>Sur les jeux et marques tiers cités.</strong> Les noms de jeux, marques,
+noms de cartes, illustrations et autres éléments liés aux jeux de société
+(<em>Magic: The Gathering</em> et Wizards of the Coast sont des marques déposées de
+Wizards of the Coast LLC ; <em>Catan</em> est une marque déposée de Catan GmbH ;
+<em>Monopoly</em> est une marque déposée de Hasbro, Inc.) demeurent la propriété de
+leurs titulaires respectifs. Leur citation dans le Service s'effectue à des fins
+strictement informatives, dans le cadre d'un usage conforme aux exceptions prévues
+par le droit applicable. Le Service n'est ni affilié, ni sponsorisé, ni approuvé par
+les titulaires de ces marques.</p>
+
+<p><strong>Sur les Contenus Utilisateur.</strong> L'Utilisateur conserve tous les
+droits de propriété intellectuelle sur les Contenus Utilisateur qu'il soumet. Il
+concède à l'Éditeur, à titre gratuit, non exclusif, pour la durée de l'utilisation
+du Service et pour le monde entier, le droit d'héberger, reproduire, adapter et
+traiter ces contenus aux seules fins strictement nécessaires à la fourniture du
+Service (traitement de la requête, génération de la Réponse IA, conservation de
+l'historique, statistiques agrégées et anonymisées, etc.).</p>
+
+<p><strong>Sur les Réponses IA.</strong> Dans la limite des droits détenus par
+l'Éditeur, les Réponses IA sont mises à disposition de l'Utilisateur pour un usage
+personnel. L'Éditeur ne garantit pas que les Réponses IA soient libres de droits,
+notamment lorsqu'elles peuvent reprendre ou reformuler des éléments protégés par
+des tiers (texte de règles officielles, <em>rulings</em>, etc.). L'Utilisateur
+s'assure, avant toute réutilisation publique, du respect des droits de ces tiers.</p>
+
+    </section>
+    <section id="art-13" class="article">
+      <h2>Article 13 — Données à caractère personnel</h2>
+      
+<p>L'Éditeur traite des données à caractère personnel dans le cadre de la fourniture
+du Service, en qualité de responsable de traitement au sens du Règlement (UE)
+2016/679 du 27 avril 2016 (« <strong>RGPD</strong> ») et de la loi n° 78-17 du
+6 janvier 1978 modifiée relative à l'informatique, aux fichiers et aux libertés.</p>
+
+<p>Les principales catégories de données traitées incluent :</p>
+<ul>
+  <li>les données d'identification transmises par le fournisseur d'identité tiers
+      (identifiant, nom affiché, adresse e-mail, image de profil) ;</li>
+  <li>les données d'authentification (jetons de session) ;</li>
+  <li>les Contenus Utilisateur (questions, historique de conversations) ;</li>
+  <li>les données techniques et de connexion (adresse IP, journaux, identifiants de
+      session) ;</li>
+  <li>le cas échéant, les données relatives à l'abonnement Premium.</li>
+</ul>
+
+<p>Conformément au RGPD, l'Utilisateur dispose d'un droit d'accès, de rectification,
+d'effacement, de limitation, d'opposition, à la portabilité de ses données ainsi que
+du droit de définir des directives relatives au sort de ses données après son décès.
+Ces droits peuvent être exercés par courriel à l'adresse
+<a href="mailto:[contact@judgeai.app]">[contact@judgeai.app]</a>.</p>
+
+<p>L'Utilisateur dispose également du droit d'introduire une réclamation auprès de
+la Commission Nationale de l'Informatique et des Libertés (CNIL), 3 place de
+Fontenoy, TSA 80715, 75334 Paris Cedex 07, <a href="https://www.cnil.fr">www.cnil.fr</a>.</p>
+
+<p>Les modalités complètes de traitement des données (finalités, bases légales,
+durées de conservation, destinataires, transferts hors UE le cas échéant,
+sous-traitants) sont détaillées dans la <strong>Politique de confidentialité</strong>
+accessible à l'adresse <a href="https://judgeai.app/privacy">[https://judgeai.app/privacy]</a>.</p>
+
+    </section>
+    <section id="art-14" class="article">
+      <h2>Article 14 — Cookies et traceurs</h2>
+      
+<p>Le Service peut recourir à des cookies et traceurs strictement nécessaires à son
+fonctionnement (authentification, session, préférences), lesquels ne requièrent pas
+le consentement préalable de l'Utilisateur conformément aux lignes directrices de
+la CNIL. Tout cookie ou traceur non strictement nécessaire (mesure d'audience,
+analyse, personnalisation, publicité) fait l'objet d'un recueil du consentement
+conforme à l'article 82 de la loi Informatique et Libertés modifiée.</p>
+
+<p>Les informations détaillées relatives aux cookies utilisés sont disponibles dans
+la <strong>Politique relative aux cookies</strong> accessible à l'adresse
+<a href="https://judgeai.app/cookies">[https://judgeai.app/cookies]</a>.</p>
+
+    </section>
+    <section id="art-15" class="article">
+      <h2>Article 15 — Durée et résiliation</h2>
+      
+<p>Les présentes CGU sont conclues pour une durée indéterminée à compter de leur
+acceptation par l'Utilisateur.</p>
+
+<p><strong>Résiliation par l'Utilisateur.</strong> L'Utilisateur peut cesser d'utiliser
+le Service à tout moment, sans formalité. L'Utilisateur peut également demander la
+suppression de son Compte à tout moment par courriel à
+<a href="mailto:[contact@judgeai.app]">[contact@judgeai.app]</a> ou via les
+fonctionnalités prévues à cet effet dans l'interface du Service. La suppression
+entraîne la résiliation de tout abonnement en cours, sans que cela ne donne lieu à
+remboursement des périodes entamées.</p>
+
+<p><strong>Résiliation par l'Éditeur.</strong> En cas de manquement grave ou réitéré
+de l'Utilisateur à ses obligations au titre des présentes CGU, l'Éditeur pourra,
+après mise en demeure restée infructueuse pendant quinze (15) jours (sauf urgence ou
+atteinte manifeste), suspendre ou résilier de plein droit l'accès au Service et
+clôturer le Compte de l'Utilisateur, sans préjudice de tous dommages et intérêts
+auxquels il pourrait prétendre.</p>
+
+    </section>
+    <section id="art-16" class="article">
+      <h2>Article 16 — Responsabilité</h2>
+      
+<p>L'Éditeur met en œuvre tous les moyens raisonnables pour assurer la fourniture du
+Service dans de bonnes conditions. Toutefois, l'Éditeur ne saurait être tenu pour
+responsable :</p>
+
+<ul>
+  <li>des conséquences de l'utilisation des Réponses IA par l'Utilisateur, lesquelles
+      ne constituent en aucun cas un arbitrage officiel ni un conseil juridique,
+      professionnel ou spécialisé ;</li>
+  <li>des inexactitudes, erreurs ou omissions pouvant affecter les Réponses IA,
+      celles-ci étant générées de manière automatisée par des modèles statistiques ;</li>
+  <li>des interruptions, indisponibilités, dysfonctionnements ou dégradations du
+      Service liés à des causes indépendantes de sa volonté, notamment celles
+      imputables à un fournisseur tiers (fournisseurs d'identité, hébergeur,
+      prestataires d'API de modèles de langage, API Scryfall) ;</li>
+  <li>des dommages indirects subis par l'Utilisateur, tels que pertes de chance,
+      pertes d'exploitation, pertes de données, pertes de revenus, atteinte à l'image
+      ou à la réputation ;</li>
+  <li>du contenu des sites tiers auxquels le Service pourrait renvoyer par lien
+      hypertexte.</li>
+</ul>
+
+<p>Dans la mesure autorisée par le droit applicable, et sauf faute lourde ou dolosive
+de l'Éditeur, la responsabilité éventuelle de l'Éditeur au titre des présentes est
+limitée, toutes causes confondues, au montant effectivement payé par l'Utilisateur
+au titre de la Formule Premium au cours des douze (12) mois précédant le fait
+générateur du dommage. En tout état de cause, les présentes stipulations ne
+sauraient limiter la responsabilité de l'Éditeur dans les cas où une telle
+limitation serait prohibée par la loi, notamment en cas de dommages corporels ou de
+faute lourde ou dolosive.</p>
+
+    </section>
+    <section id="art-17" class="article">
+      <h2>Article 17 — Force majeure</h2>
+      
+<p>Aucune des parties ne pourra être tenue responsable d'un manquement à ses
+obligations au titre des présentes CGU si ce manquement résulte d'un cas de force
+majeure au sens de l'article 1218 du Code civil. Sont notamment considérés comme
+tels, sans que cette liste soit exhaustive : les catastrophes naturelles, les
+incendies, les pannes ou dysfonctionnements généralisés des réseaux de
+télécommunications ou d'électricité, les cyberattaques d'ampleur, les décisions
+d'autorités publiques, les grèves totales ou partielles internes ou externes aux
+parties, les épidémies ou pandémies.</p>
+
+    </section>
+    <section id="art-18" class="article">
+      <h2>Article 18 — Liens hypertextes et services tiers</h2>
+      
+<p>Le Service peut contenir des liens hypertextes vers des sites ou services édités
+par des tiers (notamment Scryfall, fournisseurs de modèles de langage, fournisseurs
+d'identité). L'Éditeur n'exerce aucun contrôle sur ces sites ou services et décline
+toute responsabilité quant à leur contenu, leur disponibilité ou les conséquences de
+leur utilisation, lesquelles relèvent des conditions générales et politiques qui
+leur sont propres.</p>
+
+    </section>
+    <section id="art-19" class="article">
+      <h2>Article 19 — Règlement des litiges et médiation</h2>
+      
+<p>Les présentes CGU sont soumises au droit français.</p>
+
+<p><strong>Règlement amiable.</strong> En cas de différend relatif à l'exécution,
+l'interprétation ou la résiliation des présentes, les parties conviennent de
+rechercher une solution amiable préalablement à toute action contentieuse.
+L'Utilisateur peut adresser toute réclamation à
+<a href="mailto:[contact@judgeai.app]">[contact@judgeai.app]</a>.</p>
+
+<p><strong>Médiation de la consommation.</strong> Conformément aux articles
+L.611-1 et suivants et R.612-1 et suivants du Code de la consommation,
+l'Utilisateur consommateur qui a préalablement soumis une réclamation écrite à
+l'Éditeur sans obtenir satisfaction dans un délai raisonnable peut recourir
+gratuitement à un médiateur de la consommation, en vue de la résolution amiable de
+son litige. L'Éditeur propose, à cet effet, la saisine du médiateur suivant :
+<strong>[Nom du médiateur, adresse postale, site internet]</strong>.
+L'Utilisateur peut également recourir à la plateforme européenne de règlement en
+ligne des litiges mise en place par la Commission européenne :
+<a href="https://ec.europa.eu/consumers/odr">https://ec.europa.eu/consumers/odr</a>.</p>
+
+<p><strong>Juridiction compétente.</strong> À défaut d'accord amiable, tout litige
+relatif aux présentes sera soumis aux juridictions compétentes dans les conditions
+du droit commun. L'Utilisateur consommateur peut, à son choix, saisir la juridiction
+du lieu où il demeurait au moment de la conclusion du contrat ou de la survenance du
+fait dommageable, conformément à l'article R.631-3 du Code de la consommation.</p>
+
+    </section>
+    <section id="art-20" class="article">
+      <h2>Article 20 — Dispositions diverses</h2>
+      
+<p><strong>Intégralité.</strong> Les présentes CGU, ainsi que la Politique de
+confidentialité et, le cas échéant, les conditions particulières applicables à la
+Formule Premium, constituent l'intégralité de l'accord entre l'Éditeur et
+l'Utilisateur relativement à l'objet des présentes.</p>
+
+<p><strong>Non-renonciation.</strong> Le fait pour l'Éditeur de ne pas se prévaloir,
+à un moment donné, d'une disposition quelconque des présentes ne saurait être
+interprété comme une renonciation à s'en prévaloir ultérieurement.</p>
+
+<p><strong>Nullité partielle.</strong> Si l'une quelconque des stipulations des
+présentes CGU venait à être déclarée nulle, inapplicable ou non écrite au regard
+d'une loi, d'un règlement ou à la suite d'une décision juridictionnelle définitive,
+les autres stipulations conserveront toute leur force et leur portée.</p>
+
+<p><strong>Cession.</strong> L'Éditeur peut librement céder ou transférer tout ou
+partie des droits et obligations qu'il détient au titre des présentes dans le cadre
+d'une opération de restructuration, de cession d'activité ou d'évolution de sa forme
+juridique. L'Utilisateur en sera informé par tout moyen approprié.</p>
+
+<p><strong>Langue.</strong> Les présentes CGU sont rédigées en langue française. En
+cas de traduction, seule la version française fait foi.</p>
+
+    </section>
+    <section id="art-21" class="article">
+      <h2>Article 21 — Contact</h2>
+      
+<p>Pour toute question relative au Service ou aux présentes CGU, l'Utilisateur peut
+contacter l'Éditeur :</p>
+<ul>
+  <li>par courriel : <a href="mailto:[contact@judgeai.app]">[contact@judgeai.app]</a> ;</li>
+  <li>par voie postale : <strong>[Prénom NOM, adresse postale complète]</strong>.</li>
+</ul>
+
+    </section>
+
+    <section id="annexe" class="annexe">
+      <h2>Annexe — Formulaire type de rétractation</h2>
+      
+<p><em>Formulaire à compléter et à renvoyer uniquement si vous souhaitez vous
+rétracter d'un contrat de souscription à la Formule Premium, dans le délai de
+quatorze (14) jours.</em></p>
+
+<p>À l'attention de [Prénom NOM], [adresse postale], [adresse e-mail] :</p>
+
+<p>Je vous notifie par la présente ma rétractation du contrat portant sur la
+prestation de services Judge AI — Formule Premium ci-dessous :</p>
+<ul style="list-style: none; padding-left: 0;">
+  <li>— Commandé le : <strong>[date]</strong></li>
+  <li>— Nom du consommateur : <strong>[Prénom NOM]</strong></li>
+  <li>— Adresse du consommateur : <strong>[adresse]</strong></li>
+  <li>— Adresse e-mail utilisée pour la souscription : <strong>[adresse e-mail]</strong></li>
+  <li>— Date : <strong>[date]</strong></li>
+  <li>— Signature (uniquement en cas de notification sur papier) :</li>
+</ul>
+
+    </section>
+
+    <footer>
+      Judge AI — Conditions Générales d'Utilisation — v1.0 — 23 avril 2026
+    </footer>
+  </div>
+</body>
+</html>

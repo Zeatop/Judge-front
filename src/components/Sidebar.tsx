@@ -13,6 +13,8 @@ interface Props {
   activeChatId: string | null;
   onSelectChat: (chatId: string) => void;
   onNewChat: () => void;
+  /** Masque le bouton "Renommer" pour les invités (PATCH est auth-only). */
+  isAuthenticated: boolean;
 }
 
 export function Sidebar({
@@ -21,6 +23,7 @@ export function Sidebar({
   activeChatId,
   onSelectChat,
   onNewChat,
+  isAuthenticated,
 }: Props) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [search, setSearch] = useState("");
@@ -45,6 +48,11 @@ export function Sidebar({
     if (open) load();
   }, [open, load]);
 
+  // Recharger quand l'utilisateur se connecte (chats migrés disponibles)
+  useEffect(() => {
+    if (isAuthenticated && open) load();
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (editingId && editRef.current) {
       editRef.current.focus();
@@ -56,7 +64,6 @@ export function Sidebar({
     c.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Grouper par date
   const groups = groupByDate(filtered);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -94,7 +101,6 @@ export function Sidebar({
 
   return (
     <>
-      {/* Overlay mobile */}
       {open && <div className="sb-overlay" onClick={onClose} />}
 
       <aside className={`sb ${open ? "sb-open" : ""}`}>
@@ -165,16 +171,19 @@ export function Sidebar({
                       <span className="sb-item-title">{chat.title}</span>
                     )}
                     <div className="sb-item-actions">
-                      <button
-                        className="sb-item-btn"
-                        onClick={(e) => startEdit(chat, e)}
-                        title="Renommer"
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
+                      {/* Renommer : uniquement pour les utilisateurs connectés */}
+                      {isAuthenticated && (
+                        <button
+                          className="sb-item-btn"
+                          onClick={(e) => startEdit(chat, e)}
+                          title="Renommer"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="sb-item-btn sb-item-btn-del"
                         onClick={(e) => handleDelete(chat.id, e)}

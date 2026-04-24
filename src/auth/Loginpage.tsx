@@ -15,25 +15,6 @@ const PROVIDERS = [
       </svg>
     ),
   },
-  // {
-  //   id: "facebook",
-  //   label: "Facebook",
-  //   icon: (
-  //     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-  //       <path d="M18 9a9 9 0 10-10.406 8.89v-6.29H5.309V9h2.285V7.017c0-2.255 1.343-3.501 3.4-3.501.984 0 2.014.176 2.014.176v2.215h-1.135c-1.118 0-1.467.694-1.467 1.406V9h2.496l-.399 2.6h-2.097v6.29A9.003 9.003 0 0018 9z" fill="#1877F2"/>
-  //       <path d="M12.497 11.6L12.896 9h-2.496V7.313c0-.712.349-1.406 1.467-1.406h1.135V3.692s-1.03-.176-2.014-.176c-2.057 0-3.4 1.246-3.4 3.501V9H5.309v2.6h2.285v6.29a9.075 9.075 0 002.812 0v-6.29h2.091z" fill="#fff"/>
-  //     </svg>
-  //   ),
-  // },
-  // {
-  //   id: "apple",
-  //   label: "Apple",
-  //   icon: (
-  //     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-  //       <path d="M14.94 9.63c-.023-2.44 1.993-3.613 2.085-3.672-1.135-1.66-2.903-1.887-3.533-1.913-1.504-.152-2.935.885-3.698.885-.763 0-1.942-.863-3.192-.84-1.643.024-3.158.955-4.004 2.427-1.707 2.962-.437 7.35 1.227 9.756.813 1.175 1.782 2.495 3.055 2.449 1.225-.049 1.689-.793 3.171-.793 1.483 0 1.899.793 3.195.768 1.319-.024 2.154-1.198 2.963-2.376.934-1.363 1.319-2.682 1.342-2.75-.029-.013-2.575-.988-2.6-3.92l-.01-.02zM12.44 2.81c.676-.819 1.132-1.957 1.008-3.09-.975.04-2.155.649-2.854 1.469-.627.726-1.176 1.886-1.029 2.998 1.088.084 2.199-.553 2.875-1.377z" fill="currentColor"/>
-  //     </svg>
-  //   ),
-  // },
   {
     id: "discord",
     label: "Discord",
@@ -45,7 +26,12 @@ const PROVIDERS = [
   },
 ];
 
-export function LoginPage() {
+interface Props {
+  /** Si fourni, la page s'affiche en mode modal avec un bouton de fermeture. */
+  onClose?: () => void;
+}
+
+export function LoginPage({ onClose }: Props) {
   const { login } = useAuth();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
@@ -55,12 +41,25 @@ export function LoginPage() {
   };
 
   return (
-    <div className="login-page">
-      {/* Ambient glow */}
-      <div className="login-glow login-glow-1" />
-      <div className="login-glow login-glow-2" />
+    <div className={`login-page ${onClose ? "login-page-modal" : ""}`}>
+      {/* Ambient glow — masqué en mode modal (l'overlay parent suffit) */}
+      {!onClose && (
+        <>
+          <div className="login-glow login-glow-1" />
+          <div className="login-glow login-glow-2" />
+        </>
+      )}
 
       <div className="login-card">
+        {/* Bouton fermeture (mode modal uniquement) */}
+        {onClose && (
+          <button className="login-close-btn" onClick={onClose} aria-label="Fermer">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+
         {/* Logo */}
         <div className="login-logo">
           <h1 className="login-logo-text">Judge</h1>
@@ -68,7 +67,9 @@ export function LoginPage() {
         </div>
 
         <p className="login-subtitle">
-          Ton assistant de règles de jeux de société
+          {onClose
+            ? "Connecte-toi pour sauvegarder tes conversations"
+            : "Ton assistant de règles de jeux de société"}
         </p>
 
         {/* Divider */}

@@ -1,3 +1,5 @@
+/* ── (Tout le CSS existant de Loginpage.css, plus les ajouts modal ci-dessous) ── */
+
 .login-page {
   position: relative;
   height: 100dvh;
@@ -7,6 +9,13 @@
   background: var(--bg);
   overflow: hidden;
   padding: 1.5rem;
+}
+
+/* Mode modal : pas de background propre, l'overlay parent s'en charge */
+.login-page.login-page-modal {
+  height: auto;
+  background: transparent;
+  padding: 0;
 }
 
 /* ── Ambient glows ── */
@@ -70,6 +79,28 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* ── Bouton fermeture (mode modal) ── */
+.login-close-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.login-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
 }
 
 /* ── Logo ── */
@@ -168,38 +199,21 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(122, 190, 255, 0.06) 0%,
-    transparent 50%
-  );
+  background: linear-gradient(135deg, rgba(122, 190, 255, 0.06) 0%, transparent 50%);
   opacity: 0;
   transition: opacity 0.2s;
 }
 
-.login-provider-btn:hover:not(:disabled)::before {
-  opacity: 1;
-}
-
+.login-provider-btn:hover:not(:disabled)::before { opacity: 1; }
 .login-provider-btn:hover:not(:disabled) {
   border-color: rgba(122, 190, 255, 0.3);
   background: rgba(255, 255, 255, 0.06);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
-
-.login-provider-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.985);
-}
-
-.login-provider-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.login-provider-btn.is-loading {
-  opacity: 0.7;
-}
+.login-provider-btn:active:not(:disabled) { transform: translateY(0) scale(0.985); }
+.login-provider-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.login-provider-btn.is-loading { opacity: 0.7; }
 
 .login-provider-icon {
   display: flex;
@@ -210,10 +224,7 @@
   flex-shrink: 0;
 }
 
-.login-provider-label {
-  position: relative;
-  z-index: 1;
-}
+.login-provider-label { position: relative; z-index: 1; }
 
 /* ── Footer ── */
 .login-footer {
@@ -230,7 +241,6 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   transition: color 0.15s, border-color 0.15s;
 }
-
 .login-footer-link:hover {
   color: var(--accent);
   border-color: rgba(122, 190, 255, 0.35);

@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuth } from "./Authcontext";
+import { getSessionId, clearSessionId, migrateGuestChats } from "../api/client";
 import "./Authcallback.css";
 
 /**
@@ -7,33 +8,52 @@ import "./Authcallback.css";
  * Le backend redirige ici avec ?token=xxx&provider=yyy
  * ou ?error=auth_failed&provider=yyy
  *
- * AuthContext gère la récupération du token depuis l'URL.
- * Ce composant attend que l'utilisateur soit chargé (user != null)
- * avant de rediriger vers /, pour éviter la double connexion.
+ * Après authentification réussie :
+ *   1. Migre les chats invités (session_id) vers le nouveau compte
+ *   2. Nettoie le session_id du localStorage
+ *   3. Redirige vers /
  */
 export function AuthCallback() {
   const { user, loading } = useAuth();
   const params = new URLSearchParams(window.location.search);
   const error = params.get("error");
+  const migrated = useRef(false);
 
   useEffect(() => {
-    // Tant qu'on charge, on ne fait rien
     if (loading) return;
-
-    // En cas d'erreur OAuth, on reste sur la page pour afficher le message
     if (error) return;
 
-    // Si l'auth a réussi (user chargé), on redirige proprement vers /
-    if (user) {
-      // replace() plutôt que href = "/" pour éviter que /auth/callback
-      // reste dans l'historique du navigateur.
-      window.location.replace("/");
+    if (user && !migrated.current) {
+      migrated.current = true;
+
+      const sessionId = getSessionId();
+
+      if (sessionId) {
+        // Migrer les chats invités puis rediriger
+        migrateGuestChats(sessionId)
+          .then((count) => {
+            if (count > 0) {
+              console.log(`[Auth] ${count} chat(s) invité(s) migrés`);
+            }
+            clearSessionId();
+          })
+          .catch(() => {
+            // En cas d'échec de migration, on nettoie quand même le session_id
+            // pour éviter des tentatives infinies
+            clearSessionId();
+          })
+          .finally(() => {
+            window.location.replace("/");
+          });
+      } else {
+        window.location.replace("/");
+      }
       return;
     }
 
-    // Pas d'erreur, pas de loading, pas de user : l'auth a échoué silencieusement
-    // (ex: token invalide). On renvoie vers la page de login.
-    window.location.replace("/");
+    if (!user && !loading) {
+      window.location.replace("/");
+    }
   }, [loading, error, user]);
 
   if (error) {

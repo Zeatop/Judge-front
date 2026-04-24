@@ -6,8 +6,11 @@ import type { Message } from "./types";
 import { ChatWindow } from "./components/Chatwindow";
 import { InputBar } from "./components/Inputbar";
 import { UserMenu } from "./components/Usermenu";
+import { GuestButton } from "./components/Guestbutton";
 import { Sidebar } from "./components/Sidebar";
-import { useAuth, LoginPage, AuthCallback } from "./auth";
+import { useAuth, AuthCallback } from "./auth";
+import { LoginPage } from "./auth/Loginpage";
+import { createPortal } from "react-dom";
 import "./App.css";
 
 const MODEL_STORAGE_KEY = "judge_ai_model";
@@ -36,6 +39,14 @@ export default function App() {
   const [chatId, setChatId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // ── Login modal (mode invité) ──
+  const [showLogin, setShowLogin] = useState(false);
+
+  // ── Limite invité : max 2 questions avant de demander la connexion ──
+  const GUEST_MAX_QUESTIONS = 2;
+  const [guestQuestionCount, setGuestQuestionCount] = useState(0);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
+
   // ── Models ──
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [modelId, setModelId] = useState<string>(
@@ -44,30 +55,50 @@ export default function App() {
 
   const currentGame = GAMES.find((g) => g.id === game)!;
 
-  // ── Fetch available models once authenticated ──
+  // ── Fetch models (disponibles pour tous, pas besoin d'auth) ──
   useEffect(() => {
-    if (!user) return;
     fetchModels()
       .then((res) => {
         setModels(res.models);
-        // Si aucun choix enregistré ou choix invalide, prendre le défaut backend
         setModelId((prev) => {
           if (prev && res.models.some((m) => m.id === prev)) return prev;
           return res.default;
         });
       })
       .catch((e) => console.error("Failed to load models", e));
-  }, [user]);
+  }, []);
 
   // ── Persist model choice ──
   useEffect(() => {
     if (modelId) localStorage.setItem(MODEL_STORAGE_KEY, modelId);
   }, [modelId]);
 
+  // ── Après connexion : fermer la modal et envoyer la question en attente ──
+  useEffect(() => {
+    if (!user) return;
+    setShowLogin(false);
+    if (pendingQuestion) {
+      const q = pendingQuestion;
+      setPendingQuestion(null);
+      // Léger délai pour laisser React finir la mise à jour de user/token
+      setTimeout(() => sendQuestion(q), 100);
+    }
+  // sendQuestion est stable grâce à useCallback, on peut l'inclure
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   // ── Send question ──
   const sendQuestion = useCallback(
     async (question: string) => {
       if (!question.trim() || isLoading) return;
+
+      // Invité : bloquer à la (GUEST_MAX_QUESTIONS + 1)ème question
+      if (!user && guestQuestionCount >= GUEST_MAX_QUESTIONS) {
+        setPendingQuestion(question);
+        setInput("");
+        setShowLogin(true);
+        return;
+      }
       const userMsg: Message = {
         id: uid(),
         role: "user",
@@ -79,13 +110,13 @@ export default function App() {
       setError(null);
       setIsLoading(true);
       try {
+        // session_id est injecté automatiquement dans askQuestion si pas de token
         const { answer, cards, chat_id } = await askQuestion(
           question,
           game,
           chatId ?? undefined,
           modelId || undefined,
         );
-        // Si un nouveau chat a été créé côté backend, on le stocke
         if (chat_id && !chatId) {
           setChatId(chat_id);
         }
@@ -97,13 +128,15 @@ export default function App() {
           cards,
         };
         setMsgs((p) => [...p, aiMsg]);
+        // Incrémenter le compteur invité après une réponse réussie
+        if (!user) setGuestQuestionCount((n) => n + 1);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Erreur inconnue");
       } finally {
         setIsLoading(false);
       }
     },
-    [isLoading, game, chatId, modelId]
+    [isLoading, game, chatId, modelId, user, guestQuestionCount]
   );
 
   const submit = useCallback(
@@ -166,11 +199,10 @@ export default function App() {
     );
   }
 
-  if (route === "callback") {
-    return <AuthCallback />;
-  }
+  if (route === "callback") return <AuthCallback />;
 
-  if (!user) {
+  // Limite invité atteinte → pleine page, le chat n'est plus dans le DOM
+  if (!user && pendingQuestion) {
     return <LoginPage />;
   }
 
@@ -185,6 +217,7 @@ export default function App() {
           newChat();
           setSidebarOpen(false);
         }}
+        isAuthenticated={!!user}
       />
 
       <header className="app-header">
@@ -204,12 +237,10 @@ export default function App() {
           <span className="header-badge">AI</span>
         </div>
         <div className="header-spacer" />
-        <button className="header-new-btn" onClick={newChat} title="Nouveau chat">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-        </button>
-        <UserMenu />
+        {user
+          ? <UserMenu />
+          : <GuestButton onLogin={() => setShowLogin(true)} />
+        }
       </header>
 
       <ChatWindow
@@ -244,6 +275,27 @@ export default function App() {
         selectedModel={modelId}
         onModelChange={setModelId}
       />
+
+      {/* Modal de connexion pour les invités */}
+      {showLogin && createPortal(
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9990,
+            background: "rgba(0,0,0,0.65)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLogin(false); }}
+        >
+          <LoginPage onClose={() => setShowLogin(false)} />
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
