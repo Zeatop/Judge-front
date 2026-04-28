@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { clearSessionId, getSessionId, migrateGuestChats } from "../api/client";
+import { posthog } from "../lib/posthog";
 
 const API_BASE = import.meta.env.VITE_JUDGE_API_URL || "http://localhost:8000";
 
@@ -106,6 +107,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = (await res.json()) as User;
       setUser(userData);
 
+      // Identify the user in PostHog
+      posthog.identify(userData.id, {
+        email: userData.email ?? undefined,
+        name: userData.display_name ?? undefined,
+        providers: userData.providers,
+        is_admin: userData.is_admin,
+      });
+
       // Migration opportuniste. On la tente à chaque fetchMe réussi avec
       // un session_id présent — que ce soit après OAuth callback ou
       // simplement parce qu'un user déjà inscrit revient depuis un état guest.
@@ -115,6 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const result = await migrateGuestChats(sessionId);
           if (result.migrated > 0) {
             console.log(`[Auth] ${result.migrated} chat(s) guest migré(s)`);
+            posthog.capture("guest_chats_migrated", {
+              migrated_count: result.migrated,
+              latest_chat_id: result.latest_chat_id,
+            });
             if (result.latest_chat_id) {
               setMigratedChatId(result.latest_chat_id);
             }

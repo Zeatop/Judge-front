@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./Authcontext";
+import { posthog } from "../lib/posthog";
 import "./Loginpage.css";
 
 const PROVIDERS = [
@@ -36,6 +37,7 @@ export function LoginPage({ onClose }: Props) {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
   const handleLogin = (providerId: string) => {
+    posthog.capture("login_initiated", { provider: providerId });
     setLoadingProvider(providerId);
     login(providerId);
   };

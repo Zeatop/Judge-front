@@ -5,6 +5,7 @@ import {
   renameChat,
   type ChatSummary,
 } from "../api/client";
+import { posthog } from "../lib/posthog";
 import "./Sidebar.css";
 
 interface Props {
@@ -70,6 +71,7 @@ export function Sidebar({
     e.stopPropagation();
     try {
       await deleteChat(id);
+      posthog.capture("chat_deleted", { chat_id: id });
       setChats((prev) => prev.filter((c) => c.id !== id));
       if (activeChatId === id) onNewChat();
     } catch (err) {
@@ -90,6 +92,7 @@ export function Sidebar({
     }
     try {
       const updated = await renameChat(editingId, editVal.trim());
+      posthog.capture("chat_renamed", { chat_id: editingId });
       setChats((prev) =>
         prev.map((c) => (c.id === editingId ? updated : c))
       );

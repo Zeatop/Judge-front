@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { GameId, ModelInfo } from "./api/client";
 import {
   askQuestion, fetchChat, fetchModels,
@@ -14,6 +14,7 @@ import { Sidebar } from "./components/Sidebar";
 import { useAuth, AuthCallback } from "./auth";
 import { LoginPage } from "./auth/Loginpage";
 import { createPortal } from "react-dom";
+import { posthog } from "./lib/posthog";
 import "./App.css";
 
 const MODEL_STORAGE_KEY = "judge_ai_model";
@@ -76,6 +77,10 @@ export default function App() {
     () => localStorage.getItem(MODEL_STORAGE_KEY) ?? ""
   );
 
+  // Track previous game/model to emit change events
+  const prevGame = useRef<GameId>(game);
+  const prevModel = useRef<string>(modelId);
+
   const currentGame = GAMES.find((g) => g.id === game)!;
 
   // ── Fetch models (disponibles pour tous, pas besoin d'auth) ──
@@ -95,6 +100,29 @@ export default function App() {
   useEffect(() => {
     if (modelId) localStorage.setItem(MODEL_STORAGE_KEY, modelId);
   }, [modelId]);
+
+  // ── Track game changes ──
+  useEffect(() => {
+    if (prevGame.current !== game) {
+      posthog.capture("game_changed", {
+        from_game: prevGame.current,
+        to_game: game,
+        is_guest: !user,
+      });
+      prevGame.current = game;
+    }
+  }, [game, user]);
+
+  // ── Track model changes ──
+  useEffect(() => {
+    if (modelId && prevModel.current !== modelId) {
+      posthog.capture("model_changed", {
+        model_id: modelId,
+        is_guest: !user,
+      });
+      prevModel.current = modelId;
+    }
+  }, [modelId, user]);
 
   // ── Load existing chat from history ──
   // Déclaré avant le useEffect qui l'utilise pour éviter les refs circulaires.
@@ -123,6 +151,10 @@ export default function App() {
 
       // Invité : bloquer à la (GUEST_MAX_QUESTIONS + 1)ème question
       if (!user && guestQuestionCount >= GUEST_MAX_QUESTIONS) {
+        posthog.capture("guest_limit_reached", {
+          game_id: game,
+          question_count: guestQuestionCount,
+        });
         setPendingQuestion(question);
         setInput("");
         setShowLogin(true);
@@ -157,12 +189,24 @@ export default function App() {
           cards,
         };
         setMsgs((p) => [...p, aiMsg]);
+        posthog.capture("question_asked", {
+          game_id: game,
+          model_id: modelId || null,
+          chat_id: chat_id ?? chatId,
+          is_guest: !user,
+          cards_returned: cards.length,
+        });
         // Incrémenter le compteur invité après une réponse réussie
         if (!user) {
           incrementGuestQuestionCount();
           setGuestQuestionCount(getGuestQuestionCount());
         }
       } catch (e) {
+        posthog.capture("$exception", {
+          $exception_message: e instanceof Error ? e.message : String(e),
+          context: "question_asked",
+          game_id: game,
+        });
         setError(e instanceof Error ? e.message : "Erreur inconnue");
       } finally {
         setIsLoading(false);
@@ -232,6 +276,7 @@ export default function App() {
     async (id: string) => {
       try {
         await loadChat(id);
+        posthog.capture("chat_loaded_from_history", { chat_id: id });
       } catch {
         setError("Impossible de charger la conversation.");
       }
@@ -241,11 +286,14 @@ export default function App() {
 
   // ── New chat ──
   const newChat = useCallback(() => {
+    if (chatId) {
+      posthog.capture("new_chat_started", { previous_chat_id: chatId, game_id: game });
+    }
     setChatId(null);
     setMsgs([]);
     setError(null);
     setInput("");
-  }, []);
+  }, [chatId, game]);
 
   // ── Loading state ──
   if (loading) {

@@ -1,19 +1,16 @@
 pipeline {
     agent any
-
     environment {
         REGISTRY = '10.0.0.10:5000'
         IMAGE = 'judge-front'
         TAG = "${BUILD_NUMBER}"
     }
-
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/Zeatop/Judge-front.git'
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
@@ -32,20 +29,28 @@ pipeline {
                 }
             }
         }
-
         stage('Docker Build with Backend URL') {
+            environment {
+                POSTHOG_KEY = credentials('VITE_POSTHOG_KEY')
+                POSTHOG_HOST = credentials('VITE_POSTHOG_HOST')
+            }
             steps {
-                sh "docker build --build-arg VITE_JUDGE_API_URL=https://api.judgeai.app -t ${REGISTRY}/${IMAGE}:${TAG} -t ${REGISTRY}/${IMAGE}:latest ."
+                sh """
+                    docker build \
+                        --build-arg VITE_JUDGE_API_URL=https://api.judgeai.app \
+                        --build-arg VITE_POSTHOG_KEY=${POSTHOG_KEY} \
+                        --build-arg VITE_POSTHOG_HOST=${POSTHOG_HOST} \
+                        -t ${REGISTRY}/${IMAGE}:${TAG} \
+                        -t ${REGISTRY}/${IMAGE}:latest .
+                """
             }
         }
-
         stage('Docker Push') {
             steps {
                 sh "docker push ${REGISTRY}/${IMAGE}:${TAG}"
                 sh "docker push ${REGISTRY}/${IMAGE}:latest"
             }
         }
-
         stage('Deploy to K8s') {
             steps {
                 sh "sed -i 's|${REGISTRY}/${IMAGE}:latest|${REGISTRY}/${IMAGE}:${TAG}|' k8s/deployment.yaml"
@@ -54,7 +59,6 @@ pipeline {
             }
         }
     }
-
     post {
         success {
             echo "Déploiement réussi ! Judge-front accessible sur le port 30090"

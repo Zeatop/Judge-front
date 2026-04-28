@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../auth";
+import { posthog } from "../lib/posthog";
 import "./Usermenu.css";
 
 export function UserMenu() {
@@ -85,6 +86,8 @@ export function UserMenu() {
             <button
               className="um-logout"
               onClick={() => {
+                posthog.capture("user_logged_out");
+                posthog.reset();
                 setOpen(false);
                 logout();
               }}
