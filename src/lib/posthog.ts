@@ -8,8 +8,9 @@ export function initPostHog() {
 
   posthog.init(key, {
     api_host: host,
-    capture_pageview: false,
+    capture_pageview: true,
     capture_pageleave: true,
+    person_profiles: "identified_only"
   });
 }
 
