@@ -210,6 +210,7 @@
   z-index: 9999;
   pointer-events: none;
   animation: previewIn 0.15s ease;
+  z-index: 9999;
 }
 .card-preview-above { bottom: calc(100% + 8px); }
 .card-preview-below { top: calc(100% + 8px); }
