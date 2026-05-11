@@ -256,17 +256,6 @@
 }
 .md-ul li { margin: 0.15rem 0; line-height: 1.55; }
 
-.user-card-chip {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  padding: 0 0.35rem;
-  font-size: 0.85em;
-  color: var(--text);
-  margin: 0 0.1rem;
-  vertical-align: baseline;
-}
 
 .md-blockquote {
   border-left: 2px solid rgba(122,190,255,0.3);

@@ -1,13 +1,55 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { Message, CardInfo } from "../types";
 import "./Messagebubble.css";
 
-/* ── Rendu des chips [[carte]] dans les messages utilisateur ── */
+/* ── Lien carte dans les messages utilisateur (fetch lazy au hover) ── */
+function UserCardLink({ name }: { name: string }) {
+  const [hovered, setHovered] = useState(false);
+  const [imgPos, setImgPos] = useState<"above" | "below">("above");
+  const [data, setData] = useState<{ imageUrl: string; scryfallUrl: string } | null>(null);
+  const fetchedRef = useRef(false);
+
+  const handleMouseEnter = async (e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setImgPos(rect.top > 320 ? "above" : "below");
+    setHovered(true);
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    try {
+      const res = await fetch(
+        `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`
+      );
+      if (!res.ok) return;
+      const card = await res.json();
+      setData({
+        imageUrl: card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal ?? "",
+        scryfallUrl: card.scryfall_uri ?? "",
+      });
+    } catch { /* network error — silently ignore */ }
+  };
+
+  const href = data?.scryfallUrl || `https://scryfall.com/search?q="${encodeURIComponent(name)}"`;
+
+  return (
+    <span className="card-link-wrap" onMouseEnter={handleMouseEnter} onMouseLeave={() => setHovered(false)}>
+      <a className="card-link" href={href} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+        {name}
+      </a>
+      {hovered && data?.imageUrl && (
+        <span className={`card-preview card-preview-${imgPos}`}>
+          <img src={data.imageUrl} alt={name} />
+        </span>
+      )}
+    </span>
+  );
+}
+
+/* ── Rendu des [[carte]] dans les messages utilisateur ── */
 function renderUserContent(text: string): React.ReactNode[] {
   return text.split(/(\[\[[^\]]*\]\])/).map((part, i) => {
     const m = part.match(/^\[\[([^\]]*)\]\]$/);
     return m
-      ? <span key={i} className="user-card-chip">{m[1]}</span>
+      ? <UserCardLink key={i} name={m[1]} />
       : <span key={i}>{part}</span>;
   });
 }

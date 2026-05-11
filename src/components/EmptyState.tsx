@@ -2,7 +2,7 @@ import "./EmptyState.css";
 
 const SUGGESTIONS: Record<string, string[]> = {
   mtg: [
-    "Comment fonctionnent [[Sigarda's aid]] ?",
+    "Comment fonctionne [[Sigarda's aid]] ?",
     "Les compteurs boucliers protègent-ils du sacrifice ?",
     "Que se passe-t-il si j'ai plus de 7 cartes en main à la fin de mon tour ?",
   ],
