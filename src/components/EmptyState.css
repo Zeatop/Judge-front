@@ -1,0 +1,96 @@
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 1rem;
+  animation: emptyFadeUp 0.45s ease both;
+}
+
+.empty-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.empty-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 0.25rem;
+  filter: drop-shadow(0 0 20px rgba(122, 190, 255, 0.3));
+}
+
+.empty-title {
+  font-family: var(--font-brand);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  margin: 0;
+}
+
+.empty-sub {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  margin: 0;
+}
+
+.empty-game {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.empty-suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  max-width: 460px;
+}
+
+.suggestion-chip {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 0.84rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.14s;
+}
+
+.suggestion-chip:hover {
+  background: var(--surface-raised);
+  border-color: rgba(122, 190, 255, 0.28);
+  color: var(--text);
+  transform: translateX(4px);
+}
+
+.suggestion-icon {
+  flex-shrink: 0;
+  color: var(--accent);
+  opacity: 0.65;
+  transition: opacity 0.15s;
+}
+
+.suggestion-chip:hover .suggestion-icon {
+  opacity: 1;
+}
+
+@keyframes emptyFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

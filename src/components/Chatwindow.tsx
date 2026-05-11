@@ -1,18 +1,20 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "../types";
 import { MessageBubble, TypingIndicator } from "./Messagebubble";
+import { EmptyState } from "./EmptyState";
 import "./Chatwindow.css";
 
 interface Props {
   messages: Message[];
   isLoading: boolean;
-  emptyPlaceholder: string;
+  gameId: string;
   gameName: string;
   onResend: (content: string) => void;
   onEdit: (id: string, content: string) => void;
+  onSuggest: (question: string) => void;
 }
 
-export function ChatWindow({ messages, isLoading, emptyPlaceholder, gameName, onResend, onEdit }: Props) {
+export function ChatWindow({ messages, isLoading, gameId, gameName, onResend, onEdit, onSuggest }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,11 +24,7 @@ export function ChatWindow({ messages, isLoading, emptyPlaceholder, gameName, on
   return (
     <div className="chat-window" role="log" aria-live="polite">
       {messages.length === 0 && !isLoading ? (
-        <div className="chat-empty">
-          <div className="chat-empty-icon">📖</div>
-          <p className="chat-empty-title">{gameName}</p>
-          <p className="chat-empty-sub">{emptyPlaceholder}</p>
-        </div>
+        <EmptyState gameId={gameId} gameName={gameName} onSuggest={onSuggest} />
       ) : (
         <div className="chat-messages">
           {messages.map((msg) => (

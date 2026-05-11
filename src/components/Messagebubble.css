@@ -56,13 +56,15 @@
   background: var(--surface-raised);
   border: 1px solid rgba(255,255,255,0.09);
   border-bottom-right-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 
 .bubble-assistant {
-  background: rgba(0,210,255,0.04);
-  border: 1px solid rgba(122,190,255,0.13);
+  background: var(--surface);
+  border: 1px solid rgba(122,190,255,0.14);
   border-bottom-left-radius: 5px;
   position: relative;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.22), 0 0 0 1px rgba(122,190,255,0.04);
 }
 .bubble-assistant::before {
   content: '';
@@ -70,7 +72,7 @@
   left: -1px; top: 8px; bottom: 8px; width: 2px;
   border-radius: 2px;
   background: linear-gradient(180deg, #00d2ff 0%, #c800ff 100%);
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 .bubble-text {

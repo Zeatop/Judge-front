@@ -38,7 +38,10 @@ body {
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  background: var(--bg);
+  background:
+    radial-gradient(ellipse 900px 700px at 10% 40%, rgba(122, 190, 255, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 500px at 90% 10%, rgba(100, 80, 255, 0.03) 0%, transparent 65%),
+    var(--bg);
 }
 
 /* ── App loading ── */
@@ -67,10 +70,11 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0 1rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(23, 30, 46, 0.9);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(23, 30, 46, 0.72);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 4px 24px rgba(0, 0, 0, 0.18);
 }
 
 .header-menu-btn,

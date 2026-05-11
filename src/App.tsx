@@ -351,10 +351,11 @@ export default function App() {
       <ChatWindow
         messages={msgs}
         isLoading={isLoading}
-        emptyPlaceholder={currentGame.placeholder}
+        gameId={game}
         gameName={currentGame.label}
         onResend={handleResend}
         onEdit={handleEdit}
+        onSuggest={setInput}
       />
 
       {error && (
