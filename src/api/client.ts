@@ -125,6 +125,78 @@ export async function askQuestion(
   return { answer: data.answer, cards, chat_id: data.chat_id ?? null };
 }
 
+// ── Ask stream ───────────────────────────────────────────────────────
+
+export interface StreamDoneEvent {
+  chat_id: string | null;
+  cards: CardInfo[];
+  chunks_used: number;
+}
+
+export async function askStream(
+  question: string,
+  game: GameId,
+  chatId: string | undefined,
+  modelId: string | undefined,
+  onChunk: (text: string) => void,
+  onDone: (result: StreamDoneEvent) => void,
+  onError: (message: string) => void,
+): Promise<void> {
+  const body: AskRequest = { question, game_id: game };
+  if (chatId) body.chat_id = chatId;
+  if (modelId) body.model_id = modelId;
+  const sessionId = getSessionId();
+  if (sessionId) body.session_id = sessionId;
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/ask/stream`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    onError(e instanceof Error ? e.message : "Erreur réseau");
+    return;
+  }
+
+  if (!response.ok) {
+    try {
+      const err = await response.json();
+      onError(err.detail ?? `Erreur ${response.status}`);
+    } catch {
+      onError(`Erreur ${response.status}`);
+    }
+    return;
+  }
+
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop()!;
+
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const event = JSON.parse(line.slice(5).trim());
+        if (event.type === "chunk") onChunk(event.text);
+        else if (event.type === "done") onDone(event);
+        else if (event.type === "error") onError(event.message);
+      }
+    }
+  } catch (e) {
+    onError(e instanceof Error ? e.message : "Erreur de lecture du stream");
+  }
+}
+
 // ── Upload ───────────────────────────────────────────────────────────
 
 export interface UploadResponse {

@@ -35,7 +35,7 @@ export function ChatWindow({ messages, isLoading, gameId, gameName, onResend, on
               onEdit={onEdit}
             />
           ))}
-          {isLoading && <TypingIndicator />}
+          {isLoading && messages[messages.length - 1]?.role !== "assistant" && <TypingIndicator />}
           <div ref={bottomRef} />
         </div>
       )}

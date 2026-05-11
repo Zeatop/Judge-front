@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { GameId, ModelInfo } from "./api/client";
 import {
-  askQuestion, fetchChat, fetchModels,
+  askStream, fetchChat, fetchModels,
   getGuestQuestionCount, incrementGuestQuestionCount, resetGuestQuestionCount,
 } from "./api/client";
 import { GAMES } from "./types";
@@ -188,47 +188,66 @@ export default function App() {
       setInput("");
       setError(null);
       setIsLoading(true);
-      try {
-        // session_id est injecté automatiquement dans askQuestion si pas de token
-        const { answer, cards, chat_id } = await askQuestion(
-          question,
-          game,
-          chatId ?? undefined,
-          modelId || undefined,
-        );
-        if (chat_id && !chatId) {
-          setChatId(chat_id);
-        }
-        const aiMsg: Message = {
-          id: uid(),
-          role: "assistant",
-          content: answer,
-          timestamp: new Date(),
-          cards,
-        };
-        setMsgs((p) => [...p, aiMsg]);
-        posthog.capture("question_asked", {
-          game_id: game,
-          model_id: modelId || null,
-          chat_id: chat_id ?? chatId,
-          is_guest: !user,
-          cards_returned: cards.length,
-        });
-        // Incrémenter le compteur invité après une réponse réussie
-        if (!user) {
-          incrementGuestQuestionCount();
-          setGuestQuestionCount(getGuestQuestionCount());
-        }
-      } catch (e) {
-        posthog.capture("$exception", {
-          $exception_message: e instanceof Error ? e.message : String(e),
-          context: "question_asked",
-          game_id: game,
-        });
-        setError(e instanceof Error ? e.message : "Erreur inconnue");
-      } finally {
-        setIsLoading(false);
-      }
+
+      const streamMsgId = uid();
+      let firstChunk = true;
+
+      await askStream(
+        question,
+        game,
+        chatId ?? undefined,
+        modelId || undefined,
+        // onChunk — premier chunk : crée le message ; suivants : concatène
+        (text) => {
+          if (firstChunk) {
+            firstChunk = false;
+            setMsgs((p) => [...p, {
+              id: streamMsgId,
+              role: "assistant" as const,
+              content: text,
+              timestamp: new Date(),
+              cards: [],
+            }]);
+          } else {
+            setMsgs((p) => {
+              const last = p[p.length - 1];
+              if (last?.id !== streamMsgId) return p;
+              return [...p.slice(0, -1), { ...last, content: last.content + text }];
+            });
+          }
+        },
+        // onDone — finalise les cards et le chat_id
+        ({ chat_id, cards }) => {
+          if (chat_id && !chatId) setChatId(chat_id);
+          setMsgs((p) => {
+            const last = p[p.length - 1];
+            if (last?.id !== streamMsgId) return p;
+            return [...p.slice(0, -1), { ...last, cards }];
+          });
+          setIsLoading(false);
+          posthog.capture("question_asked", {
+            game_id: game,
+            model_id: modelId || null,
+            chat_id: chat_id ?? chatId,
+            is_guest: !user,
+            cards_returned: cards.length,
+          });
+          if (!user) {
+            incrementGuestQuestionCount();
+            setGuestQuestionCount(getGuestQuestionCount());
+          }
+        },
+        // onError
+        (message) => {
+          posthog.capture("$exception", {
+            $exception_message: message,
+            context: "question_asked",
+            game_id: game,
+          });
+          setError(message);
+          setIsLoading(false);
+        },
+      );
     },
     [isLoading, game, chatId, modelId, user, guestQuestionCount]
   );
