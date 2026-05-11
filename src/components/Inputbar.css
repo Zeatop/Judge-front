@@ -19,11 +19,11 @@
 /* ── Rangée principale ── */
 .input-row {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.6rem;
 }
 
-/* ── Bouton jeu rond ── */
+/* ── Bouton jeu ── */
 .input-game-btn {
   flex-shrink: 0;
   width: 2.4rem;
@@ -37,6 +37,7 @@
   align-items: center;
   justify-content: center;
   transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  margin-bottom: 0.25rem;
 }
 .input-game-btn:hover:not(:disabled) {
   background: var(--surface-raised);
@@ -48,7 +49,7 @@
 .input-game-btn img { display: block; opacity: 0.7; }
 .input-game-btn:hover img { opacity: 1; }
 
-/* ── Champ texte ── */
+/* ── Shell ── */
 .input-shell {
   flex: 1;
   display: flex;
@@ -58,98 +59,81 @@
   border-radius: var(--radius-sm);
   transition: border-color 0.2s, box-shadow 0.2s;
   overflow: hidden;
-  cursor: text;
-  min-height: 2.6rem;
 }
 .input-shell:focus-within {
   border-color: rgba(122,190,255,0.35);
   box-shadow: 0 0 0 3px rgba(122,190,255,0.07);
 }
 
-/* ── Rich input (segments) ── */
-.input-rich {
+/* ── Textarea wrap (needed for overlay positioning) ── */
+.input-textarea-wrap {
+  position: relative;
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0;
-  padding: 0.5rem 0.4rem 0.5rem 1rem;
-  max-height: 2.6rem;
-  overflow: hidden;
-  transition: max-height 0.22s ease;
-  line-height: 1.55;
-  font-size: 0.875rem;
 }
-.input-shell:focus-within .input-rich {
+
+/* ── Textarea ── */
+.input-textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--text);
+  padding: 0.65rem 0.5rem 0.65rem 1rem;
   max-height: 10rem;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.15) transparent;
 }
-.input-rich.all-selected { background: rgba(122, 190, 255, 0.1); border-radius: 4px; }
+.input-textarea::placeholder { color: var(--text-3); font-size: 0.845rem; }
+.input-textarea:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Middle text segment: sizer span drives width, input overlays it */
-.resizing-wrap {
-  position: relative;
-  display: inline-block;
-  min-width: 4px;
-  flex-shrink: 0;
+/* When overlay is active, hide textarea text but keep caret */
+.input-textarea.has-chips {
+  color: transparent;
+  caret-color: var(--text);
 }
-.resizing-sizer {
-  display: inline-block;
-  visibility: hidden;
-  white-space: pre;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.55;
-  padding: 0.2rem 0;
-  pointer-events: none;
-}
-.resizing-wrap .resizing-input {
+
+/* ── Overlay (decorative, mirrors textarea) ── */
+.input-overlay {
   position: absolute;
   inset: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Shared inline-input styles (middle segments only) */
-.resizing-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: var(--text);
-  padding: 0.2rem 0;
-  min-width: 0;
-}
-.resizing-input::placeholder { color: var(--text-3); }
-.resizing-input:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* Last segment: auto-growing textarea */
-.resizing-textarea {
-  flex: 1;
-  min-width: 60px;
-  background: transparent;
-  border: none;
-  outline: none;
-  resize: none;
+  pointer-events: none;
   overflow: hidden;
+  /* Must match textarea exactly */
   font-family: var(--font-ui);
   font-size: 0.875rem;
   font-weight: 400;
-  color: var(--text);
   line-height: 1.55;
-  padding: 0.2rem 0;
-  min-height: 0;
-  align-self: center;
+  color: var(--text);
+  padding: 0.65rem 0.5rem 0.65rem 1rem;
+  /* Text wrapping must mirror textarea */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
-.resizing-textarea::placeholder { color: var(--text-3); }
-.resizing-textarea:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* Chip in overlay: styled but zero layout impact */
+.ov-chip {
+  background: rgba(122, 190, 255, 0.12);
+  border-radius: 3px;
+}
+.ov-brack {
+  color: rgba(122, 190, 255, 0.4);
+  font-size: 0.82em;
+}
+.ov-name {
+  color: var(--accent);
+}
+
+/* ── Bouton envoi ── */
 .input-send {
   flex-shrink: 0;
   display: flex;
@@ -169,13 +153,7 @@
 .input-send.active:hover { filter: brightness(1.12); transform: scale(1.05); }
 .input-send.active:active { transform: scale(0.95); }
 
-.input-hint {
-  font-size: 0.6rem;
-  color: var(--text-3);
-  text-align: center;
-  letter-spacing: 0.02em;
-}
-
+/* ── Footer ── */
 .input-footer {
   display: flex;
   align-items: center;
@@ -183,8 +161,49 @@
   gap: 0.75rem;
   padding: 0 0.25rem;
 }
-
-.input-footer .input-hint {
-  margin: 0;
+.input-hint {
+  font-size: 0.6rem;
+  color: var(--text-3);
   text-align: right;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* ── Autocomplete dropdown carte ── */
+.card-ac-dropdown {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  max-height: 220px;
+  overflow-y: auto;
+  animation: acDropUp 0.12s ease;
+}
+
+.card-ac-item {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.65rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.83rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.card-ac-item:hover {
+  background: rgba(122, 190, 255, 0.1);
+  color: var(--accent);
+}
+
+@keyframes acDropUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

@@ -2,7 +2,7 @@ import "./EmptyState.css";
 
 const SUGGESTIONS: Record<string, string[]> = {
   mtg: [
-    "Si j'équipe d'abord [[Colossal hammer]] puis les [[winged boots]] à une créature, a-t-elle le vol ?",
+    "Comment fonctionnent [[Sigarda's aid]] ?",
     "Les compteurs boucliers protègent-ils du sacrifice ?",
     "Que se passe-t-il si j'ai plus de 7 cartes en main à la fin de mon tour ?",
   ],
@@ -39,7 +39,7 @@ export function EmptyState({ gameId, gameName, onSuggest }: Props) {
         <img src="/Judge.png" alt="Judge" className="empty-logo" />
         <h2 className="empty-title">Judge</h2>
         <p className="empty-sub">
-          Votre arbitre IA pour <span className="empty-game">{gameName}</span>
+        <span className="empty-game">{gameName}</span>
         </p>
       </div>
       <ul className="empty-suggestions" role="list">

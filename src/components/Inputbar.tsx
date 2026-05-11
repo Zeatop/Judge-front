@@ -1,105 +1,42 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useState, useRef, useEffect, useCallback, type KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 import { GameModal } from "./Gamemodal";
 import { ModelSelector } from "./Modelselector";
-import { CardChip, type CardChipHandle } from "./CardChip";
 import type { GameId, ModelInfo } from "../api/client";
 import "./Inputbar.css";
 
-// ── Segment model ──────────────────────────────────────────────────────────
-
-let _uid = 0;
-function newId() { return `seg-${Date.now()}-${++_uid}`; }
-
-type TextSeg = { type: "text"; id: string; value: string };
-type CardSeg = { type: "card"; id: string; name: string };
-type Segment = TextSeg | CardSeg;
-type FocusableInput = HTMLInputElement | HTMLTextAreaElement;
-
-function parseSegments(text: string): Segment[] {
-  if (!text) return [{ type: "text", id: newId(), value: "" }];
-  const parts = text.split(/(\[\[[^\]]*\]\])/);
-  const segs: Segment[] = parts
-    .filter(p => p !== "")
-    .map(p => {
-      const m = p.match(/^\[\[([^\]]*)\]\]$/);
-      return m
-        ? ({ type: "card", id: newId(), name: m[1] } as CardSeg)
-        : ({ type: "text", id: newId(), value: p } as TextSeg);
-    });
-  if (segs[0]?.type !== "text") segs.unshift({ type: "text", id: newId(), value: "" });
-  if (segs[segs.length - 1]?.type !== "text") segs.push({ type: "text", id: newId(), value: "" });
-  return segs;
-}
-
-function serializeSegments(segs: Segment[]): string {
-  return segs.map(s => s.type === "text" ? s.value : `[[${s.name}]]`).join("");
-}
-
-// Focus the mapped DOM element after React has committed
-function requestFocus(map: React.RefObject<Map<string, FocusableInput | CardChipHandle>>, id: string) {
-  setTimeout(() => {
-    const el = map.current.get(id);
-    if (el && "focus" in el) el.focus();
-  }, 0);
-}
-
-// ── ResizingInput ──────────────────────────────────────────────────────────
-
-interface ResizingInputProps {
-  value: string;
-  placeholder?: string;
-  disabled?: boolean;
-  onChange: (v: string) => void;
-  onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
-  inputRef?: (el: FocusableInput | null) => void;
-  isLast: boolean;
-}
-
-function ResizingInput({ value, placeholder, disabled, onChange, onKeyDown, inputRef, isLast }: ResizingInputProps) {
-  const taRef = useRef<HTMLTextAreaElement>(null);
-
-  // Auto-grow the textarea to fit its content
-  useEffect(() => {
-    if (!isLast || !taRef.current) return;
-    taRef.current.style.height = "auto";
-    taRef.current.style.height = `${taRef.current.scrollHeight}px`;
-  }, [value, isLast]);
-
-  if (isLast) {
-    return (
-      <textarea
-        ref={el => {
-          (taRef as { current: HTMLTextAreaElement | null }).current = el;
-          inputRef?.(el);
-        }}
-        className="resizing-textarea"
-        value={value}
-        placeholder={placeholder}
-        disabled={disabled}
-        rows={1}
-        onChange={e => onChange(e.target.value)}
-        onKeyDown={e => onKeyDown(e as unknown as KeyboardEvent<HTMLInputElement>)}
-        aria-label="Question"
-      />
-    );
-  }
-
-  return (
-    <span className="resizing-wrap">
-      <span className="resizing-sizer" aria-hidden="true">{value || " "}</span>
-      <input
-        ref={el => inputRef?.(el)}
-        className="resizing-input"
-        value={value}
-        disabled={disabled}
-        onChange={e => onChange(e.target.value)}
-        onKeyDown={onKeyDown}
-      />
-    </span>
+async function fetchCardSuggestions(query: string, signal: AbortSignal): Promise<string[]> {
+  const res = await fetch(
+    `https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`,
+    { signal }
   );
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.data as string[]) ?? [];
 }
 
-// ── InputBar ───────────────────────────────────────────────────────────────
+function getActiveQuery(text: string, cursor: number): string | null {
+  const before = text.slice(0, cursor);
+  const match = before.match(/\[\[([^\]]*)$/);
+  return match ? match[1] : null;
+}
+
+// Render the overlay: plain text + styled [[card]] chips
+function renderOverlay(text: string): React.ReactNode[] {
+  return text.split(/(\[\[[^\]]*\]\])/).map((part, i) => {
+    const m = part.match(/^\[\[([^\]]*)\]\]$/);
+    if (m) {
+      return (
+        <span key={i} className="ov-chip">
+          <span className="ov-brack">[[</span>
+          <span className="ov-name">{m[1]}</span>
+          <span className="ov-brack">]]</span>
+        </span>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
 
 interface Props {
   value: string;
@@ -120,213 +57,114 @@ export function InputBar({
   models, selectedModel, onModelChange,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [segments, setSegments] = useState<Segment[]>(() => parseSegments(value));
-  const [allSelected, setAllSelected] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [dropOpen, setDropOpen] = useState(false);
+  const [dropPos, setDropPos] = useState({ bottom: 0, left: 0, width: 0 });
+  const [cursor, setCursor] = useState(0);
 
-  const focusMap = useRef<Map<string, FocusableInput | CardChipHandle>>(new Map());
-
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
   const mtgMode = selectedGame === "mtg";
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
-  const onSubmitRef = useRef(onSubmit);
-  onSubmitRef.current = onSubmit;
 
-  // Sync external value changes (onSuggest, reset after send)
+  // Auto-grow textarea
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+
+  // Sync overlay scroll with textarea scroll
+  const syncScroll = useCallback(() => {
+    if (overlayRef.current && ref.current) {
+      overlayRef.current.scrollTop = ref.current.scrollTop;
+    }
+  }, []);
+
+  // Focus + cursor when value is set externally
   const prevValue = useRef(value);
   useEffect(() => {
     if (value !== prevValue.current) {
       prevValue.current = value;
-      setSegments(parseSegments(value));
+      setTimeout(() => {
+        if (!ref.current) return;
+        ref.current.focus();
+        ref.current.setSelectionRange(value.length, value.length);
+      }, 0);
     }
   }, [value]);
 
-  // Notify parent when segments change
+  // Scryfall autocomplete
   useEffect(() => {
-    const s = serializeSegments(segments);
-    if (s !== prevValue.current) {
-      prevValue.current = s;
-      onChangeRef.current(s);
-    }
-  }, [segments]);
+    if (!mtgMode) { setDropOpen(false); return; }
+    const query = getActiveQuery(value, cursor);
+    if (!query || query.length < 4) { setDropOpen(false); setSuggestions([]); return; }
 
-  // Deselect on click outside the rich input
+    const ctrl = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const results = await fetchCardSuggestions(query, ctrl.signal);
+        setSuggestions(results);
+        if (results.length > 0 && shellRef.current) {
+          const r = shellRef.current.getBoundingClientRect();
+          setDropPos({ bottom: window.innerHeight - r.top + 4, left: r.left, width: r.width });
+          setDropOpen(true);
+        } else {
+          setDropOpen(false);
+        }
+      } catch { /* aborted */ }
+    }, 500);
+
+    return () => { clearTimeout(timer); ctrl.abort(); };
+  }, [value, cursor, mtgMode]);
+
+  // Close dropdown on outside click
   useEffect(() => {
-    if (!allSelected) return;
-    const fn = () => setAllSelected(false);
+    if (!dropOpen) return;
+    const fn = (e: MouseEvent) => {
+      if (!shellRef.current?.contains(e.target as Node)) setDropOpen(false);
+    };
     document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);
-  }, [allSelected]);
+  }, [dropOpen]);
 
-  // ── Text segment handlers ──
+  const selectCard = useCallback((cardName: string) => {
+    const before = value.slice(0, cursor);
+    const after = value.slice(cursor);
+    const newBefore = before.replace(/\[\[([^\]]*)$/, `[[${cardName}]]`);
+    const newValue = newBefore + after;
+    onChange(newValue);
+    setDropOpen(false);
+    setSuggestions([]);
+    setTimeout(() => {
+      if (!ref.current) return;
+      ref.current.focus();
+      ref.current.setSelectionRange(newBefore.length, newBefore.length);
+    }, 0);
+  }, [value, cursor, onChange]);
 
-  const handleTextChange = useCallback((id: string, newVal: string) => {
-    setSegments(prev => prev.map(s => s.id === id && s.type === "text" ? { ...s, value: newVal } : s));
-  }, []);
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value);
+    setCursor(e.target.selectionStart ?? e.target.value.length);
+  };
 
-  const selectAll = useCallback(() => setAllSelected(true), []);
+  const handleSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    setCursor((e.target as HTMLTextAreaElement).selectionStart ?? 0);
+  };
 
-  const clearAll = useCallback(() => {
-    const id = newId();
-    setSegments([{ type: "text", id, value: "" }]);
-    setAllSelected(false);
-    requestFocus(focusMap, id);
-  }, []);
-
-  const handleTextKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>, seg: TextSeg, idx: number) => {
+  const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      setAllSelected(false);
-      if (!disabled && serializeSegments(segments).trim()) onSubmitRef.current();
+      if (!disabled && value.trim()) onSubmit();
       return;
     }
+    if (e.key === "Escape") setDropOpen(false);
+    setCursor(e.currentTarget.selectionStart ?? 0);
+  };
 
-    // Ctrl+A / Cmd+A → select all
-    if (e.key === "a" && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      setAllSelected(true);
-      return;
-    }
-
-    // When everything is selected
-    if (allSelected) {
-      if (e.key === "Backspace" || e.key === "Delete") {
-        e.preventDefault();
-        clearAll();
-        return;
-      }
-      if (e.key === "c" && (e.ctrlKey || e.metaKey)) {
-        navigator.clipboard.writeText(serializeSegments(segments));
-        setAllSelected(false);
-        return;
-      }
-      if (e.key === "x" && (e.ctrlKey || e.metaKey)) {
-        navigator.clipboard.writeText(serializeSegments(segments));
-        clearAll();
-        return;
-      }
-      if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
-        const id = newId();
-        setSegments([{ type: "text", id, value: e.key }]);
-        setAllSelected(false);
-        setTimeout(() => {
-          const el = focusMap.current.get(id) as FocusableInput | undefined;
-          if (el) { el.focus(); el.setSelectionRange(1, 1); }
-        }, 0);
-        return;
-      }
-      setAllSelected(false);
-      return;
-    }
-
-    // Backspace at start of text segment when prev is a chip → focus the chip
-    if (e.key === "Backspace" && seg.value === "" && idx > 0) {
-      const prev = segments[idx - 1];
-      if (prev.type === "card") {
-        e.preventDefault();
-        requestFocus(focusMap, prev.id);
-        return;
-      }
-    }
-
-    // ArrowRight at end of text → skip over next chip to the text segment after it
-    if (e.key === "ArrowRight") {
-      const el = e.currentTarget;
-      if (el.selectionStart === seg.value.length && el.selectionEnd === seg.value.length) {
-        const next = segments[idx + 1];
-        if (next?.type === "card") {
-          const afterChip = segments[idx + 2];
-          if (afterChip?.type === "text") {
-            e.preventDefault();
-            const target = focusMap.current.get(afterChip.id) as FocusableInput | undefined;
-            if (target && "setSelectionRange" in target) {
-              target.focus();
-              target.setSelectionRange(0, 0);
-            }
-          }
-        }
-      }
-    }
-
-    // ArrowLeft at start of text → skip over prev chip to the text segment before it
-    if (e.key === "ArrowLeft") {
-      const el = e.currentTarget;
-      if (el.selectionStart === 0 && el.selectionEnd === 0) {
-        const prev = segments[idx - 1];
-        if (prev?.type === "card") {
-          const beforeChip = segments[idx - 2];
-          if (beforeChip?.type === "text") {
-            e.preventDefault();
-            const target = focusMap.current.get(beforeChip.id) as FocusableInput | undefined;
-            if (target && "setSelectionRange" in target) {
-              target.focus();
-              target.setSelectionRange(target.value.length, target.value.length);
-            }
-          }
-        }
-      }
-    }
-
-    if (!mtgMode) return;
-
-    // Detect [[ at cursor position
-    if (e.key === "[") {
-      const cursorPos = e.currentTarget.selectionStart ?? seg.value.length;
-      if (seg.value.slice(0, cursorPos).endsWith("[")) {
-        e.preventDefault();
-        const before = seg.value.slice(0, cursorPos - 1);
-        const after = seg.value.slice(cursorPos);
-        const newCard: CardSeg = { type: "card", id: newId(), name: "" };
-        const afterText: TextSeg = { type: "text", id: newId(), value: after };
-        setSegments(prev => [
-          ...prev.slice(0, idx),
-          { ...seg, value: before },
-          newCard,
-          afterText,
-          ...prev.slice(idx + 1),
-        ]);
-        requestFocus(focusMap, newCard.id);
-      }
-    }
-  }, [segments, allSelected, disabled, mtgMode, clearAll]);
-
-  // ── Card chip handlers ──
-
-  const handleChipChange = useCallback((id: string, name: string) => {
-    setSegments(prev => prev.map(s => s.id === id && s.type === "card" ? { ...s, name } : s));
-  }, []);
-
-  const handleChipConfirm = useCallback((id: string, name: string) => {
-    setSegments(prev => {
-      const updated = prev.map(s => s.id === id && s.type === "card" ? { ...s, name } : s);
-      const chipIdx = updated.findIndex(s => s.id === id);
-      const next = updated[chipIdx + 1];
-      if (next?.type === "text") requestFocus(focusMap, next.id);
-      return updated;
-    });
-  }, []);
-
-  const handleChipDelete = useCallback((id: string) => {
-    setSegments(prev => {
-      const idx = prev.findIndex(s => s.id === id);
-      if (idx === -1) return prev;
-      const before = prev[idx - 1] as TextSeg | undefined;
-      const after = prev[idx + 1] as TextSeg | undefined;
-
-      let result: Segment[];
-      if (before?.type === "text" && after?.type === "text") {
-        const merged: TextSeg = { type: "text", id: before.id, value: before.value + after.value };
-        result = [...prev.slice(0, idx - 1), merged, ...prev.slice(idx + 2)];
-      } else {
-        result = prev.filter(s => s.id !== id);
-      }
-
-      if (before) requestFocus(focusMap, before.id);
-      return result;
-    });
-  }, []);
-
-  const serialized = serializeSegments(segments);
-  const canSend = !disabled && serialized.trim().length > 0;
+  const canSend = !disabled && value.trim().length > 0;
+  const hasChips = mtgMode && /\[\[/.test(value);
 
   return (
     <>
@@ -343,45 +181,25 @@ export function InputBar({
               <img src="/boardGames-white.svg" alt="" width="18" height="18" />
             </button>
 
-            <div
-              className="input-shell"
-              onClick={e => {
-                if (e.target === e.currentTarget) {
-                  const last = [...segments].reverse().find(s => s.type === "text");
-                  if (last) requestFocus(focusMap, last.id);
-                }
-              }}
-            >
-              <div className={`input-rich${allSelected ? " all-selected" : ""}`} role="textbox" aria-multiline="true" aria-label="Question">
-                {segments.map((seg, idx) =>
-                  seg.type === "text" ? (
-                    <ResizingInput
-                      key={seg.id}
-                      value={seg.value}
-                      placeholder={idx === 0 ? (placeholder ?? "Pose ta question…") : undefined}
-                      disabled={disabled}
-                      isLast={idx === segments.length - 1}
-                      onChange={v => handleTextChange(seg.id, v)}
-                      onKeyDown={e => handleTextKeyDown(e, seg, idx)}
-                      inputRef={el => {
-                        if (el) focusMap.current.set(seg.id, el);
-                        else focusMap.current.delete(seg.id);
-                      }}
-                    />
-                  ) : (
-                    <CardChip
-                      key={seg.id}
-                      ref={handle => {
-                        if (handle) focusMap.current.set(seg.id, handle);
-                        else focusMap.current.delete(seg.id);
-                      }}
-                      name={seg.name}
-                      onChange={name => handleChipChange(seg.id, name)}
-                      onConfirm={name => handleChipConfirm(seg.id, name)}
-                      onDelete={() => handleChipDelete(seg.id)}
-                      onSelectAll={selectAll}
-                    />
-                  )
+            <div ref={shellRef} className="input-shell">
+              <div className="input-textarea-wrap">
+                <textarea
+                  ref={ref}
+                  className={`input-textarea${hasChips ? " has-chips" : ""}`}
+                  value={value}
+                  onChange={handleChange}
+                  onSelect={handleSelect}
+                  onKeyDown={onKey}
+                  onScroll={syncScroll}
+                  disabled={disabled}
+                  placeholder={placeholder ?? "Pose ta question…"}
+                  rows={1}
+                  aria-label="Question"
+                />
+                {hasChips && (
+                  <div ref={overlayRef} className="input-overlay" aria-hidden="true">
+                    {renderOverlay(value)}
+                  </div>
                 )}
               </div>
 
@@ -401,26 +219,36 @@ export function InputBar({
 
           <div className="input-footer">
             {models.length > 0 ? (
-              <ModelSelector
-                models={models}
-                selected={selectedModel}
-                onChange={onModelChange}
-                disabled={disabled}
-              />
+              <ModelSelector models={models} selected={selectedModel} onChange={onModelChange} disabled={disabled} />
             ) : <span />}
             <p className="input-hint">
-              {mtgMode ? "Tape [[ pour référencer une carte · " : ""}Entrée pour envoyer
+              {mtgMode ? "Tape [[ pour référencer une carte · " : ""}Entrée · Shift+Entrée pour nouvelle ligne
             </p>
           </div>
         </div>
       </div>
 
+      {dropOpen && createPortal(
+        <ul
+          className="card-ac-dropdown"
+          style={{ position: "fixed", bottom: dropPos.bottom, left: dropPos.left, width: dropPos.width }}
+        >
+          {suggestions.map(s => (
+            <li key={s}>
+              <button
+                className="card-ac-item"
+                onMouseDown={e => { e.preventDefault(); selectCard(s); }}
+              >
+                {s}
+              </button>
+            </li>
+          ))}
+        </ul>,
+        document.body
+      )}
+
       {modalOpen && (
-        <GameModal
-          selected={selectedGame}
-          onChange={onGameChange}
-          onClose={() => setModalOpen(false)}
-        />
+        <GameModal selected={selectedGame} onChange={onGameChange} onClose={() => setModalOpen(false)} />
       )}
     </>
   );
