@@ -49,6 +49,7 @@ export default function App() {
   // ── Chat state ──
   const [chatId, setChatId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatKey, setChatKey] = useState(0);
 
   // ── Login modal (mode invité) ──
   const [showLogin, setShowLogin] = useState(false);
@@ -80,6 +81,7 @@ export default function App() {
   // Track previous game/model to emit change events
   const prevGame = useRef<GameId>(game);
   const prevModel = useRef<string>(modelId);
+  const prevUser = useRef(user);
 
   const currentGame = GAMES.find((g) => g.id === game)!;
 
@@ -100,6 +102,22 @@ export default function App() {
   useEffect(() => {
     if (modelId) localStorage.setItem(MODEL_STORAGE_KEY, modelId);
   }, [modelId]);
+
+  // ── Déconnexion : reset du chat quand user passe de truthy → null ──
+  useEffect(() => {
+    const wasLoggedIn = prevUser.current !== null;
+    prevUser.current = user;
+    if (!user && wasLoggedIn) {
+      setSidebarOpen(false);
+      setMsgs([]);
+      setChatId(null);
+      setInput("");
+      setError(null);
+      resetGuestQuestionCount();
+      setGuestQuestionCount(0);
+      setChatKey((k) => k + 1);
+    }
+  }, [user]);
 
   // ── Track game changes ──
   useEffect(() => {
@@ -349,6 +367,7 @@ export default function App() {
       </header>
 
       <ChatWindow
+        key={chatKey}
         messages={msgs}
         isLoading={isLoading}
         gameId={game}

@@ -2,6 +2,16 @@ import { useState } from "react";
 import type { Message, CardInfo } from "../types";
 import "./Messagebubble.css";
 
+/* ── Rendu des chips [[carte]] dans les messages utilisateur ── */
+function renderUserContent(text: string): React.ReactNode[] {
+  return text.split(/(\[\[[^\]]*\]\])/).map((part, i) => {
+    const m = part.match(/^\[\[([^\]]*)\]\]$/);
+    return m
+      ? <span key={i} className="user-card-chip">{m[1]}</span>
+      : <span key={i}>{part}</span>;
+  });
+}
+
 /* ── Card link avec preview au hover ── */
 function CardLink({ card }: { card: CardInfo }) {
   const [hovered, setHovered] = useState(false);
@@ -209,7 +219,7 @@ export function MessageBubble({ message, onResend, onEdit }: BubbleProps) {
           <div className={`bubble ${isUser ? "bubble-user" : "bubble-assistant"}`}>
             <div className="bubble-text">
               {isUser
-                ? <p className="md-p">{renderInline(message.content, [])}</p>
+                ? <p className="md-p">{renderUserContent(message.content)}</p>
                 : renderMarkdown(message.content, message.cards ?? [])
               }
             </div>

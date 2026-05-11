@@ -52,38 +52,103 @@
 .input-shell {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   background: var(--surface);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-sm);
   transition: border-color 0.2s, box-shadow 0.2s;
   overflow: hidden;
+  cursor: text;
+  min-height: 2.6rem;
 }
 .input-shell:focus-within {
   border-color: rgba(122,190,255,0.35);
   box-shadow: 0 0 0 3px rgba(122,190,255,0.07);
 }
 
-.input-textarea {
+/* ── Rich input (segments) ── */
+.input-rich {
   flex: 1;
   min-width: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  resize: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  padding: 0.5rem 0.4rem 0.5rem 1rem;
+  max-height: 2.6rem;
+  overflow: hidden;
+  transition: max-height 0.22s ease;
+  line-height: 1.55;
+  font-size: 0.875rem;
+}
+.input-shell:focus-within .input-rich {
+  max-height: 10rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.input-rich.all-selected { background: rgba(122, 190, 255, 0.1); border-radius: 4px; }
+
+/* Middle text segment: sizer span drives width, input overlays it */
+.resizing-wrap {
+  position: relative;
+  display: inline-block;
+  min-width: 4px;
+  flex-shrink: 0;
+}
+.resizing-sizer {
+  display: inline-block;
+  visibility: hidden;
+  white-space: pre;
   font-family: var(--font-ui);
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--text);
-  padding: 0.65rem 0.5rem 0.65rem 1rem;
-  max-height: 130px;
-  overflow-y: auto;
-  scrollbar-width: none;
+  padding: 0.2rem 0;
+  pointer-events: none;
 }
-.input-textarea::-webkit-scrollbar { display: none; }
-.input-textarea::placeholder { color: var(--text-3); font-size: 0.845rem; }
-.input-textarea:disabled { opacity: 0.4; cursor: not-allowed; }
+.resizing-wrap .resizing-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Shared inline-input styles (middle segments only) */
+.resizing-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text);
+  padding: 0.2rem 0;
+  min-width: 0;
+}
+.resizing-input::placeholder { color: var(--text-3); }
+.resizing-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Last segment: auto-growing textarea */
+.resizing-textarea {
+  flex: 1;
+  min-width: 60px;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.55;
+  padding: 0.2rem 0;
+  min-height: 0;
+  align-self: center;
+}
+.resizing-textarea::placeholder { color: var(--text-3); }
+.resizing-textarea:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .input-send {
   flex-shrink: 0;
@@ -92,7 +157,7 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  margin: 0 0.4rem;
+  margin: 0 0.4rem 0.3rem;
   border-radius: var(--radius-sm);
   border: none;
   background: rgba(255,255,255,0.07);
