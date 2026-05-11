@@ -1,45 +1,72 @@
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { Message, CardInfo } from "../types";
 import "./Messagebubble.css";
 
+/* ── Helper : position du preview carte (portal fixe, échappe les stacking contexts) ── */
+function useCardPreview() {
+  const [preview, setPreview] = useState<{ src: string; alt: string; x: number; y: number; above: boolean } | null>(null);
+
+  const show = (e: React.MouseEvent, src: string, alt: string) => {
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const above = r.top > window.innerHeight / 2;
+    setPreview({ src, alt, x: r.left + r.width / 2, y: above ? r.top - 8 : r.bottom + 8, above });
+  };
+
+  const hide = () => setPreview(null);
+
+  const portal = preview
+    ? createPortal(
+        <div
+          style={{
+            position: "fixed",
+            zIndex: 9999,
+            left: preview.x,
+            ...(preview.above ? { bottom: window.innerHeight - preview.y } : { top: preview.y }),
+            transform: "translateX(-50%)",
+            pointerEvents: "none",
+          }}
+        >
+          <img src={preview.src} alt={preview.alt} className="card-preview-img" />
+        </div>,
+        document.body
+      )
+    : null;
+
+  return { show, hide, portal };
+}
+
 /* ── Lien carte dans les messages utilisateur (fetch lazy au hover) ── */
 function UserCardLink({ name }: { name: string }) {
-  const [hovered, setHovered] = useState(false);
-  const [imgPos, setImgPos] = useState<"above" | "below">("above");
+  const { show, hide, portal } = useCardPreview();
   const [data, setData] = useState<{ imageUrl: string; scryfallUrl: string } | null>(null);
   const fetchedRef = useRef(false);
 
   const handleMouseEnter = async (e: React.MouseEvent) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setImgPos(rect.top > 320 ? "above" : "below");
-    setHovered(true);
-    if (fetchedRef.current) return;
+    if (fetchedRef.current) {
+      if (data?.imageUrl) show(e, data.imageUrl, name);
+      return;
+    }
     fetchedRef.current = true;
     try {
-      const res = await fetch(
-        `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`
-      );
+      const res = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);
       if (!res.ok) return;
       const card = await res.json();
-      setData({
-        imageUrl: card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal ?? "",
-        scryfallUrl: card.scryfall_uri ?? "",
-      });
-    } catch { /* network error — silently ignore */ }
+      const imageUrl = card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal ?? "";
+      const scryfallUrl = card.scryfall_uri ?? "";
+      setData({ imageUrl, scryfallUrl });
+      if (imageUrl) show(e, imageUrl, name);
+    } catch { /* network error */ }
   };
 
   const href = data?.scryfallUrl || `https://scryfall.com/search?q="${encodeURIComponent(name)}"`;
 
   return (
-    <span className="card-link-wrap" onMouseEnter={handleMouseEnter} onMouseLeave={() => setHovered(false)}>
+    <span className="card-link-wrap" onMouseEnter={handleMouseEnter} onMouseLeave={hide}>
       <a className="card-link" href={href} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
         {name}
       </a>
-      {hovered && data?.imageUrl && (
-        <span className={`card-preview card-preview-${imgPos}`}>
-          <img src={data.imageUrl} alt={name} />
-        </span>
-      )}
+      {portal}
     </span>
   );
 }
@@ -56,25 +83,18 @@ function renderUserContent(text: string): React.ReactNode[] {
 
 /* ── Card link avec preview au hover ── */
 function CardLink({ card }: { card: CardInfo }) {
-  const [hovered, setHovered] = useState(false);
-  const [imgPos, setImgPos] = useState<"above" | "below">("above");
-
-  const handleMouseEnter = (e: React.MouseEvent) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setImgPos(rect.top > 320 ? "above" : "below");
-    setHovered(true);
-  };
+  const { show, hide, portal } = useCardPreview();
 
   return (
-    <span className="card-link-wrap" onMouseEnter={handleMouseEnter} onMouseLeave={() => setHovered(false)}>
+    <span
+      className="card-link-wrap"
+      onMouseEnter={e => card.image_url && show(e, card.image_url, card.name)}
+      onMouseLeave={hide}
+    >
       <a className="card-link" href={card.scryfall_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
         {card.name}
       </a>
-      {hovered && card.image_url && (
-        <span className={`card-preview card-preview-${imgPos}`}>
-          <img src={card.image_url} alt={card.name} />
-        </span>
-      )}
+      {portal}
     </span>
   );
 }
