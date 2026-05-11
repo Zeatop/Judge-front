@@ -127,7 +127,6 @@
 }
 .ov-brack {
   color: rgba(122, 190, 255, 0.4);
-  font-size: 0.82em;
 }
 .ov-name {
   color: var(--accent);

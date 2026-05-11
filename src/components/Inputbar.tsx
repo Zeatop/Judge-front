@@ -65,6 +65,7 @@ export function InputBar({
   const ref = useRef<HTMLTextAreaElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
+  const isUserInput = useRef(false);
   const mtgMode = selectedGame === "mtg";
 
   // Auto-grow textarea
@@ -82,16 +83,19 @@ export function InputBar({
     }
   }, []);
 
-  // Focus + cursor when value is set externally
+  // Focus + cursor when value is set externally (not from user typing)
   const prevValue = useRef(value);
   useEffect(() => {
     if (value !== prevValue.current) {
       prevValue.current = value;
-      setTimeout(() => {
-        if (!ref.current) return;
-        ref.current.focus();
-        ref.current.setSelectionRange(value.length, value.length);
-      }, 0);
+      if (!isUserInput.current) {
+        setTimeout(() => {
+          if (!ref.current) return;
+          ref.current.focus();
+          ref.current.setSelectionRange(value.length, value.length);
+        }, 0);
+      }
+      isUserInput.current = false;
     }
   }, [value]);
 
@@ -145,6 +149,7 @@ export function InputBar({
   }, [value, cursor, onChange]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    isUserInput.current = true;
     onChange(e.target.value);
     setCursor(e.target.selectionStart ?? e.target.value.length);
   };
