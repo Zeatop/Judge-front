@@ -17,6 +17,7 @@ function useCardPreview() {
 
   const portal = preview
     ? createPortal(
+        // Outer div : centrage uniquement (pas d'animation sur ce transform)
         <div
           style={{
             position: "fixed",
@@ -27,7 +28,10 @@ function useCardPreview() {
             pointerEvents: "none",
           }}
         >
-          <img src={preview.src} alt={preview.alt} className="card-preview-img" />
+          {/* Inner div : animation opacity + scale sans conflit de transform */}
+          <div className="card-preview-inner">
+            <img src={preview.src} alt={preview.alt} className="card-preview-img" />
+          </div>
         </div>,
         document.body
       )
