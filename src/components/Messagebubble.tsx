@@ -121,34 +121,25 @@ function cardNameVariants(card: CardInfo): { name: string; card: CardInfo }[] {
 }
 
 function renderInline(text: string, cards: CardInfo[]): React.ReactNode[] {
-  if (cards.length === 0) {
-    return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
-      if (part.startsWith("**") && part.endsWith("**"))
-        return <strong key={i}>{part.slice(2, -2)}</strong>;
-      return <span key={i}>{part}</span>;
-    });
-  }
-
-  // Construire la liste de variantes, noms longs d'abord
   const allVariants = cards.flatMap(cardNameVariants);
-  // Trier par longueur décroissante pour matcher le nom complet avant le court
   allVariants.sort((a, b) => b.name.length - a.name.length);
 
-  // Tokenisation : on cherche le prochain token (gras ou nom de carte)
   type Token =
     | { t: "text"; v: string }
     | { t: "bold"; v: string }
-    | { t: "card"; card: CardInfo };
+    | { t: "card"; card: CardInfo }
+    | { t: "cardlink"; name: string };
 
   const tokens: Token[] = [];
   let rem = text;
 
   while (rem.length > 0) {
-    // Chercher gras
     const boldMatch = rem.match(/\*\*([^*]+)\*\*/);
     const boldIdx = boldMatch ? rem.indexOf(boldMatch[0]) : -1;
 
-    // Chercher le nom de carte le plus proche (variantes incluses)
+    const cardlinkMatch = rem.match(/\[\[([^\]]*)\]\]/);
+    const cardlinkIdx = cardlinkMatch ? rem.indexOf(cardlinkMatch[0]) : -1;
+
     let cardIdx = -1, cardCard: CardInfo | null = null, cardLen = 0;
     for (const variant of allVariants) {
       const idx = rem.toLowerCase().indexOf(variant.name.toLowerCase());
@@ -157,19 +148,23 @@ function renderInline(text: string, cards: CardInfo[]): React.ReactNode[] {
       }
     }
 
-    // Quel token arrive en premier ?
     const hasBold = boldIdx !== -1;
     const hasCard = cardIdx !== -1;
+    const hasCardlink = cardlinkIdx !== -1;
 
-    if (!hasBold && !hasCard) { tokens.push({ t: "text", v: rem }); break; }
+    if (!hasBold && !hasCard && !hasCardlink) { tokens.push({ t: "text", v: rem }); break; }
 
-    const nextIdx = hasBold && hasCard
-      ? Math.min(boldIdx, cardIdx)
-      : hasBold ? boldIdx : cardIdx;
+    let nextIdx = Infinity;
+    if (hasBold) nextIdx = Math.min(nextIdx, boldIdx);
+    if (hasCard) nextIdx = Math.min(nextIdx, cardIdx);
+    if (hasCardlink) nextIdx = Math.min(nextIdx, cardlinkIdx);
 
     if (nextIdx > 0) tokens.push({ t: "text", v: rem.slice(0, nextIdx) });
 
-    if (hasBold && (!hasCard || boldIdx <= cardIdx)) {
+    if (hasCardlink && cardlinkIdx === nextIdx) {
+      tokens.push({ t: "cardlink", name: cardlinkMatch![1] });
+      rem = rem.slice(cardlinkIdx + cardlinkMatch![0].length);
+    } else if (hasBold && boldIdx === nextIdx) {
       tokens.push({ t: "bold", v: boldMatch![1] });
       rem = rem.slice(boldIdx + boldMatch![0].length);
     } else {
@@ -181,6 +176,7 @@ function renderInline(text: string, cards: CardInfo[]): React.ReactNode[] {
   return tokens.map((tok, i) => {
     if (tok.t === "bold") return <strong key={i}>{tok.v}</strong>;
     if (tok.t === "card") return <CardLink key={i} card={tok.card} />;
+    if (tok.t === "cardlink") return <UserCardLink key={i} name={tok.name} />;
     return <span key={i}>{tok.v}</span>;
   });
 }
