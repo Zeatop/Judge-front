@@ -174,7 +174,16 @@ function renderInline(text: string, cards: CardInfo[]): React.ReactNode[] {
   }
 
   return tokens.map((tok, i) => {
-    if (tok.t === "bold") return <strong key={i}>{tok.v}</strong>;
+    if (tok.t === "bold") {
+      const v = tok.v;
+      // [[name]] imbriqué dans **...**
+      const cl = v.match(/^\[\[([^\]]*)\]\]$/);
+      if (cl) return <strong key={i}><UserCardLink name={cl[1]} /></strong>;
+      // nom de carte exact imbriqué dans **...**
+      const matched = allVariants.find(av => av.name.toLowerCase() === v.toLowerCase());
+      if (matched) return <strong key={i}><CardLink card={matched.card} /></strong>;
+      return <strong key={i}>{v}</strong>;
+    }
     if (tok.t === "card") return <CardLink key={i} card={tok.card} />;
     if (tok.t === "cardlink") return <UserCardLink key={i} name={tok.name} />;
     return <span key={i}>{tok.v}</span>;
