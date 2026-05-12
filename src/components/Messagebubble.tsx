@@ -179,8 +179,9 @@ function renderInline(text: string, cards: CardInfo[]): React.ReactNode[] {
       // [[name]] imbriqué dans **...**
       const cl = v.match(/^\[\[([^\]]*)\]\]$/);
       if (cl) return <strong key={i}><UserCardLink name={cl[1]} /></strong>;
-      // nom de carte exact imbriqué dans **...**
-      const matched = allVariants.find(av => av.name.toLowerCase() === v.toLowerCase());
+      // nom de carte exact imbriqué dans **...**  (normalise ' → ' pour Scryfall)
+      const normApos = (s: string) => s.toLowerCase().replace(/[‘’‛ʼ]/g, "'");
+      const matched = allVariants.find(av => normApos(av.name) === normApos(v));
       if (matched) return <strong key={i}><CardLink card={matched.card} /></strong>;
       return <strong key={i}>{v}</strong>;
     }
